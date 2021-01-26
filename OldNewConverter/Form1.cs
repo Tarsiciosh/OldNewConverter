@@ -21,6 +21,7 @@ namespace OldNewConverter
 
         private void readTxtFileButton_Click(object sender, EventArgs e)
         {
+            //in the real implementation this information comes from the excel file
             string originFolderString = originFolderTextBox.Text;
             string destinationFolderString = destinationFolderTextBox.Text;
             string destinationFilePath;
@@ -28,12 +29,13 @@ namespace OldNewConverter
             System.IO.StreamReader originStreamReader;
             System.IO.StreamWriter destinationStreamWriter;
 
-            char[] originBuffer = new char[1024];
+            char[] originBuffer = new char[100000];
 
             IEnumerable<string> filePaths = System.IO.Directory.EnumerateFiles(originFolderString, "*.json", System.IO.SearchOption.AllDirectories);
-            foreach (string originFilePath in filePaths) //all the .txt files in that folder and subfolders
+
+            foreach (string originFilePath in filePaths) //all the .json files in that folder and subfolders
             {
-                int index;
+                int index, startIndex, endIndex;
                 string torqueString, angleString;
 
                 // open and read data from the origin file
@@ -41,22 +43,23 @@ namespace OldNewConverter
                 originStreamReader.Read(originBuffer, 0, originBuffer.Length - 1); // read file
                 string originFileString = new string(originBuffer); // convert to string 
 
-                index = originFileString.IndexOf("tightening steps");
-                index = originFileString.IndexOf("torque", index);
-                torqueString = new String(originBuffer, index + 9, 8);
+                index = originFileString.LastIndexOf("\"torque\":");
+                startIndex = originFileString.IndexOf(":", index);
+                endIndex = originFileString.IndexOf(",", index);       
+                torqueString = new String(originBuffer, startIndex + 2, endIndex - startIndex -2);
 
-                index = originFileString.IndexOf("tightening steps");
-                index = originFileString.IndexOf("angle", index);
-                angleString = new String(originBuffer, index + 8, 10);
+                index = originFileString.LastIndexOf("\"angle\":");
+                angleString = new String(originBuffer, index + 9, 11);
 
                 MessageBox.Show(torqueString);
                 MessageBox.Show(angleString);
 
                 // Writes data to the destination file
-                destinationFilePath = System.IO.Path.Combine(destinationFolderString, "test.txt");
+                destinationFilePath = System.IO.Path.Combine(destinationFolderString, "teste.txt");
                 destinationStreamWriter = System.IO.File.CreateText(destinationFilePath);
 
-                destinationStreamWriter.Write("torque= " + torqueString + "angle= " + angleString);
+                destinationStreamWriter.Write("torque= " + torqueString + "  angle= " + angleString);
+                destinationStreamWriter.Flush();
 
                 originStreamReader.Close();
                 destinationStreamWriter.Close();
