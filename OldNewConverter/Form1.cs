@@ -36,7 +36,9 @@ namespace OldNewConverter
             foreach (string originFilePath in filePaths) //all the .json files in that folder and subfolders
             {
                 int index, startIndex, endIndex;
-                string torqueString, angleString;
+                string torqueString, angleString, timeString;
+
+                char[] destinationBuffer = new char[10];
 
                 // open and read data from the origin file
                 originStreamReader = System.IO.File.OpenText(originFilePath); //open file
@@ -53,14 +55,27 @@ namespace OldNewConverter
                 endIndex = originFileString.IndexOf(",", index);
                 angleString = new String(originBuffer, startIndex + 2, endIndex - startIndex - 2);
 
+
+
                 //MessageBox.Show(torqueString);
                 //MessageBox.Show(angleString);
 
                 // Writes data to the destination file
+
+                // First Read the model to a buffer
+                // Add data to the buffer
+                // Create file and copy the information from the buffer
+                
                 destinationFilePath = System.IO.Path.Combine(destinationFolderString, "test-result.txt");
                 destinationStreamWriter = System.IO.File.CreateText(destinationFilePath);
 
+                // To test the funtion with strings
                 destinationStreamWriter.Write("torque= " + torqueString + "  angle= " + angleString);
+
+                destinationBuffer = torqueString.ToCharArray();
+
+                destinationStreamWriter.Write(destinationBuffer);
+
                 destinationStreamWriter.Flush();
 
                 originStreamReader.Close();
