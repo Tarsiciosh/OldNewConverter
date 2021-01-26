@@ -49,13 +49,15 @@ namespace OldNewConverter
                 torqueString = new String(originBuffer, startIndex + 2, endIndex - startIndex -2);
 
                 index = originFileString.LastIndexOf("\"angle\":");
-                angleString = new String(originBuffer, index + 9, 11);
+                startIndex = originFileString.IndexOf(":", index);
+                endIndex = originFileString.IndexOf(",", index);
+                angleString = new String(originBuffer, startIndex + 2, endIndex - startIndex - 2);
 
-                MessageBox.Show(torqueString);
-                MessageBox.Show(angleString);
+                //MessageBox.Show(torqueString);
+                //MessageBox.Show(angleString);
 
                 // Writes data to the destination file
-                destinationFilePath = System.IO.Path.Combine(destinationFolderString, "teste.txt");
+                destinationFilePath = System.IO.Path.Combine(destinationFolderString, "test-result.txt");
                 destinationStreamWriter = System.IO.File.CreateText(destinationFilePath);
 
                 destinationStreamWriter.Write("torque= " + torqueString + "  angle= " + angleString);
