@@ -21,65 +21,99 @@ namespace OldNewConverter
 
         private void readTxtFileButton_Click(object sender, EventArgs e)
         {
+            
+            
+            
+            
             //in the real implementation this information comes from the excel file
             string originFolderString = originFolderTextBox.Text;
             string destinationFolderString = destinationFolderTextBox.Text;
             string destinationFilePath;
 
-            System.IO.StreamReader originStreamReader;
-            System.IO.StreamWriter destinationStreamWriter;
-
+            System.IO.StreamReader originFile;
+            System.IO.StreamReader modelFile;
+            System.IO.StreamWriter destinationFile;
+            
             char[] originBuffer = new char[100000];
+            char[] modelBuffer = new char[100000];
+            char[] destinationBuffer = new char[10];
 
             IEnumerable<string> filePaths = System.IO.Directory.EnumerateFiles(originFolderString, "*.json", System.IO.SearchOption.AllDirectories);
 
             foreach (string originFilePath in filePaths) //all the .json files in that folder and subfolders
             {
                 int index, startIndex, endIndex;
-                string torqueString, angleString, timeString;
-
-                char[] destinationBuffer = new char[10];
+                string date, Tmin, T, Tmax, Amin, A, Amax, t, tmax;
 
                 // open and read data from the origin file
-                originStreamReader = System.IO.File.OpenText(originFilePath); //open file
-                originStreamReader.Read(originBuffer, 0, originBuffer.Length - 1); // read file
+                originFile = System.IO.File.OpenText(originFilePath); // open 
+                originFile.Read(originBuffer, 0, originBuffer.Length - 1); // read
                 string originFileString = new string(originBuffer); // convert to string 
+
+                index = originFileString.IndexOf("\"prg date\":");
+                startIndex = originFileString.IndexOf(":", index);
+                endIndex = originFileString.IndexOf(",", startIndex+1);
+                date = new String(originBuffer, startIndex + 3, endIndex - startIndex - 4);
+                //T = T.Substring(0, 5); //normalize data
 
                 index = originFileString.LastIndexOf("\"torque\":");
                 startIndex = originFileString.IndexOf(":", index);
-                endIndex = originFileString.IndexOf(",", index);       
-                torqueString = new String(originBuffer, startIndex + 2, endIndex - startIndex -2);
-
+                endIndex = originFileString.IndexOf(",", startIndex+1);       
+                T = new String(originBuffer, startIndex + 2, endIndex - startIndex -2);
+                T = T.Substring(0, 5); //normalize data
+               
                 index = originFileString.LastIndexOf("\"angle\":");
                 startIndex = originFileString.IndexOf(":", index);
-                endIndex = originFileString.IndexOf(",", index);
-                angleString = new String(originBuffer, startIndex + 2, endIndex - startIndex - 2);
+                endIndex = originFileString.IndexOf(",", startIndex+1);
+                A = new String(originBuffer, startIndex + 2, endIndex - startIndex - 2);
+                A = A.Substring(0, 8); // normalize data
+
+                index = originFileString.LastIndexOf("\"duration\":");
+                startIndex = originFileString.IndexOf(":", index);
+                endIndex = originFileString.IndexOf(",", startIndex+1);
+                t = new String(originBuffer, startIndex + 2, endIndex - startIndex - 2);
+                t = t.Substring(0, 6); // normalize data
 
 
+                //MessageBox.Show("torque: " + torque);
+                //MessageBox.Show("angle: " + angle);
 
-                //MessageBox.Show(torqueString);
-                //MessageBox.Show(angleString);
-
-                // Writes data to the destination file
-
-                // First Read the model to a buffer
-                // Add data to the buffer
-                // Create file and copy the information from the buffer
+                // reead model fiel and converted into a string
+                modelFile = System.IO.File.OpenText("C:\\OldNewGateway\\file models\\model1.txt"); // open
+                modelFile.Read(modelBuffer, 0, modelBuffer.Length - 1); // read
                 
+                /*
+                byte myByte = 0x02; modelBuffer[0] = myByte.ToString().ToCharArray()[0]; //STX
+                myByte = 0x20; modelBuffer[1] = myByte.ToString().ToCharArray()[0]; //_
+                myByte = 0x0E; modelBuffer[2] = myByte.ToString().ToCharArray()[0]; //SO
+                myByte = 0x0D; modelBuffer[3] = myByte.ToString().ToCharArray()[0]; //CR
+                myByte = 0x0A; modelBuffer[4] = myByte.ToString().ToCharArray()[0]; //CR
+                */
+
+                string modelString = new string(modelBuffer); // convert to string
+
+                // Add data to the model string - all data
+                
+                modelString = modelString.Insert(20, T);
+                modelString = modelString.Insert(34, A);
+                modelString = modelString.Insert(43, t);
+                modelString = modelString.Insert(52, date);
+
+                //MessageBox.Show(modelString);
+
+                // Create file and copy the information from the buffer
+
                 destinationFilePath = System.IO.Path.Combine(destinationFolderString, "test-result.txt");
-                destinationStreamWriter = System.IO.File.CreateText(destinationFilePath);
+                destinationFile = System.IO.File.CreateText(destinationFilePath);
 
-                // To test the funtion with strings
-                destinationStreamWriter.Write("torque= " + torqueString + "  angle= " + angleString);
+                destinationBuffer = modelString.ToCharArray();
 
-                destinationBuffer = torqueString.ToCharArray();
+                destinationFile.Write(destinationBuffer);
 
-                destinationStreamWriter.Write(destinationBuffer);
+                destinationFile.Flush();
 
-                destinationStreamWriter.Flush();
-
-                originStreamReader.Close();
-                destinationStreamWriter.Close();
+                originFile.Close();
+                destinationFile.Close();
 
                 System.IO.File.Delete(originFilePath);
             }
@@ -94,12 +128,12 @@ namespace OldNewConverter
 
             try
             {
-                // to read the path of the file from the text box
-                string path = configPathTextBox.Text;
-                path = path.Replace(@"\", @"\\");
+                //to read the path of the file from the text box
+                //string path = configPathTextBox.Text;
+                //path = path.Replace(@"\", @"\\");
 
                 // to hardcode the path to a string
-                path = "C:\\OldNewGateway\\config\\stations.xlsx";
+                string path = "C:\\OldNewGateway\\config\\stations.xlsx";
 
                 //start excel and get application object.
                 oXL = new Excel.Application();
@@ -179,4 +213,7 @@ namespace OldNewConverter
                destinationPath = new string(configBuffer, startIndex + 1, endIndex - startIndex - 1); 
                MessageBox.Show("destination: " + destinationPath);
            } 
+
+     // To test the funtion with strings
+                //destinationFile.Write("torque= " + torqueString + "  angle= " + angleString);
            */
