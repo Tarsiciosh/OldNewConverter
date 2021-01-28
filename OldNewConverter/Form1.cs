@@ -54,7 +54,7 @@ namespace OldNewConverter
                 startIndex = originFileString.IndexOf(":", index);
                 endIndex = originFileString.IndexOf(",", startIndex+1);
                 date = new String(originBuffer, startIndex + 3, endIndex - startIndex - 4);
-                //T = T.Substring(0, 5); //normalize data
+                date = date.Insert(11, "H "); //normalize data
 
                 index = originFileString.LastIndexOf("\"torque\":");
                 startIndex = originFileString.IndexOf(":", index);
