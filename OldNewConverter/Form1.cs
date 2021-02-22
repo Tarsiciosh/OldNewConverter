@@ -98,42 +98,24 @@ namespace OldNewConverter
                     startIndex = originFileString.IndexOf(":", index);
                     endIndex = originFileString.IndexOf(",", startIndex + 1);
                     T = originFileString.Substring(startIndex + 2, endIndex - startIndex - 2); // number type without ""
-                    T = T.Substring(0, 5); //normalize data
-
-
-                    T = "4.200";
-
-                    bool stillSearch = true;
-                    char[] myCharArray = T.ToCharArray();
-                    for (int j = T.Length -1; j>=0; j--)
-                    {
-                        if (myCharArray[j] == '0' && stillSearch == true)
-                        {
-                            T = T.Insert(0, " ");
-                        }
-                        else
-                        {
-                            stillSearch = false;
-                        }
-                    }
-                    T = T.Substring(0, 5); 
-
+                    //T = "7.200"; 
+                    T = cutAndShift(T, 5); //normalize data
 
                     index = originFileString.LastIndexOf("\"angle\":");
                     startIndex = originFileString.IndexOf(":", index);
                     endIndex = originFileString.IndexOf(",", startIndex + 1);
                     A = originFileString.Substring(startIndex + 2, endIndex - startIndex - 2);
-                    A = A.Substring(0, 8); // normalize data
+                    A = cutAndShift(A, 8); // normalize data
 
                     index = originFileString.LastIndexOf("\"duration\":");
                     startIndex = originFileString.IndexOf(":", index);
                     endIndex = originFileString.IndexOf(",", startIndex + 1);
                     t = originFileString.Substring(startIndex + 2, endIndex - startIndex - 2);
-                    t = t.Substring(0, 6); // normalize data
+                    t = cutAndShift(t, 6); // normalize data
 
                     // MessageBox.Show("date: " + date);
                     // MessageBox.Show("id: " + id);
-                    // MessageBox.Show("T: " + T);
+                    MessageBox.Show("T: " + T);
                     // MessageBox.Show("A: " + A);
 
                     // READ MODEL FILE
@@ -188,6 +170,43 @@ namespace OldNewConverter
                 }
                 i++; if (i >= maxStationNumber) break;
             }       
+        }
+
+        private string cutAndShift(string s, int n)
+        {
+            try
+            {
+                if (n > s.Length) return null;
+                 
+                s = s.Substring(0, n); // first cut
+
+                bool stillSearch = true;
+                char[] charArray = s.ToCharArray();
+                for (int i = s.Length - 1; i >= 0; i--)
+                {
+                    if (charArray[i] == '0' && stillSearch == true)
+                    {
+                        s = s.Insert(0, " ");
+                    }
+                    else
+                    {
+                        stillSearch = false;
+                    }
+                }
+                s = s.Substring(0, n); // last cut
+                return s;
+            }
+            catch (Exception theException) //catch and report the error if there is any
+            {
+                string errorMessage;
+                errorMessage = "Error:";
+                errorMessage = String.Concat(errorMessage, theException.Message);
+                errorMessage = String.Concat(errorMessage, "Line: ");
+                errorMessage = String.Concat(errorMessage, theException.Source);
+
+                MessageBox.Show(errorMessage, "Error");
+                return null;
+            }
         }
 
         private void readExcelFile()
