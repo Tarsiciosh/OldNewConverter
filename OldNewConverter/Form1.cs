@@ -38,6 +38,12 @@ namespace OldNewConverter
             }*/
         }
 
+        public enum DataType
+        {
+            Text = 0,
+            Number = 1, 
+        }
+
         private void readTxtFileButton_Click(object sender, EventArgs e)
         {
 
@@ -75,63 +81,91 @@ namespace OldNewConverter
                 foreach (string originFilePath in filePaths) //all the .json files in that folder and subfolders
                 {
                     int index, startIndex, endIndex;
-                    string date, id, Tmin, T, Tmax, Amin, A, Amax, t, tmax;
-                    string originFileString, modelFileString;
+                    string result, prg, cycle, date, id, qc, Tmin, T, Tmax, Amin, A, Amax, t, tmax;
+                    string originString, destinationString;
 
                     // READ ORIGIN FILE
                     originFile = System.IO.File.OpenText(originFilePath);
-                    originFileString = originFile.ReadToEnd();
+                    originString = originFile.ReadToEnd();
 
-                    index = originFileString.IndexOf("\"prg date\":"); 
-                    startIndex = originFileString.IndexOf(":", index); // (string , start index)
-                    endIndex = originFileString.IndexOf(",", startIndex + 1);  
-                    date = originFileString.Substring(startIndex + 3, endIndex - startIndex - 4); // string type with "" (start index, length)
-                    date = date.Insert(11, "H "); //normalize data
+                    result = getData(originString, "result", DataType.Text);
 
-                    index = originFileString.IndexOf("\"id code\":");
-                    startIndex = originFileString.IndexOf(":", index); 
-                    endIndex = originFileString.IndexOf(",", startIndex + 1);
-                    id = originFileString.Substring(startIndex + 3, endIndex - startIndex - 4);
-                    id = id + "_01"; //normalize data
+                    prg = getData(originString, "prg nr", DataType.Number);
+                    prg = expandAndShift(prg, 2); 
 
-                    index = originFileString.LastIndexOf("\"torque\":");
-                    startIndex = originFileString.IndexOf(":", index);
-                    endIndex = originFileString.IndexOf(",", startIndex + 1);
-                    T = originFileString.Substring(startIndex + 2, endIndex - startIndex - 2); // number type without ""
-                    //T = "7.200"; 
-                    T = cutAndShift(T, 5); //normalize data
+                    cycle = getData(originString, "cycle", DataType.Number);
+                    cycle = expandAndShift(cycle, 7);
 
-                    index = originFileString.LastIndexOf("\"angle\":");
-                    startIndex = originFileString.IndexOf(":", index);
-                    endIndex = originFileString.IndexOf(",", startIndex + 1);
-                    A = originFileString.Substring(startIndex + 2, endIndex - startIndex - 2);
-                    A = cutAndShift(A, 8); // normalize data
+                    date = getData(originString, "date", DataType.Text);
+                    date = date.Insert(11, "H ");
 
-                    index = originFileString.LastIndexOf("\"duration\":");
-                    startIndex = originFileString.IndexOf(":", index);
-                    endIndex = originFileString.IndexOf(",", startIndex + 1);
-                    t = originFileString.Substring(startIndex + 2, endIndex - startIndex - 2);
-                    t = cutAndShift(t, 6); // normalize data
+                    id = getData(originString, "id code", DataType.Text);
+                    id = id + "_xxx"; 
 
-                    // MessageBox.Show("date: " + date);
-                    // MessageBox.Show("id: " + id);
-                    MessageBox.Show("T: " + T);
-                    // MessageBox.Show("A: " + A);
+                    // qc
+
+                    // last result
+
+                    // row
+
+                    // column    
+
+                    T = getLastData(originString, "torque", DataType.Number);
+                    T = cutAndShift(T, 5); 
+
+                    A = getLastData(originString, "angle", DataType.Number);
+                    A = cutAndShift(A, 8);
+
+                    Tmin = "     ";
+
+                    Tmax = "     ";
+
+                    Amin = "        ";
+
+                    Amax = "        ";
 
                     // READ MODEL FILE
                     modelFile = System.IO.File.OpenText("C:\\OldNewGateway\\file models\\model.txt");
-                    modelFileString = modelFile.ReadToEnd(); // read as string
+                    destinationString = modelFile.ReadToEnd(); // read as string
 
-                    modelFileString = modelFileString.Insert(12-1, id);
+                    //ID code souce and ID code
+                    destinationString = destinationString.Insert(12-1, id); 
 
-                    index = modelFileString.IndexOf('\x0A'); // first line feed
+                    index = destinationString.IndexOf('\x0A'); 
 
-                    index = modelFileString.IndexOf('\x0A', index + 1); // next line feed    
-                    modelFileString = modelFileString.Insert(index + 3, date); //to-do: change insert with "replace"
+                    index = destinationString.IndexOf('\x0A', index + 1); // date, time    
+                    destinationString = destinationString.Insert(index + 3, date); 
 
-                    index = modelFileString.IndexOf('\x0A', index + 1); // next line feed
-                    modelFileString = modelFileString.Insert(index + 6, T);
+                    index = destinationString.IndexOf('\x0A', index + 1); // measured values with result
+                    destinationString = destinationString.Insert(index + 6, T);
+                    destinationString = destinationString.Insert(index + 14, A);
+                    destinationString = destinationString.Insert(index + 28, "     "); // G gradient
+                    destinationString = destinationString.Insert(index + 34, result);
 
+                    index = destinationString.IndexOf('\x0A', index + 1); // redundancy values (optional)
+                    destinationString = destinationString.Insert(index + 6, "     "); // 5 spaces 
+                    destinationString = destinationString.Insert(index + 14, "        "); // 8 spaces
+                    destinationString = destinationString.Insert(index + 26, " 0"); // 2 spaces
+
+                    index = destinationString.IndexOf('\x0A', index + 1); // angle limits
+                    destinationString = destinationString.Insert(index + 3, Amin); 
+                    destinationString = destinationString.Insert(index + 14, Amax); 
+
+                    index = destinationString.IndexOf('\x0A', index + 1); // torque limits
+                    destinationString = destinationString.Insert(index + 6, Tmin);
+                    destinationString = destinationString.Insert(index + 17, Tmax);
+
+
+                    index = destinationString.IndexOf('\x0A', index + 1); // gradient limits
+
+                    index = destinationString.IndexOf('\x0A', index + 1); // step, quality code, stopped by
+
+                    index = destinationString.IndexOf('\x0A', index + 1); // consecutive no. and program no.
+                    destinationString = destinationString.Insert(index + 3, cycle);
+                    destinationString = destinationString.Insert(index + 13, prg);
+
+
+                    index = destinationString.IndexOf('\x0A', index + 1); // hardware ID and channel no.
 
                     // Add data to the model buffer
                     // modelBuffer[1] = 0x20;
@@ -153,12 +187,12 @@ namespace OldNewConverter
 
                     // Create file and copy the information from the buffer
 
-                    
+
 
                     destinationFilePath = System.IO.Path.Combine(stations[i].destinationPath, "test-result.txt");
                     destinationFile = System.IO.File.CreateText(destinationFilePath);
 
-                    destinationBuffer = modelFileString.ToCharArray(); // convert to char array    
+                    destinationBuffer = destinationString.ToCharArray(); // convert to char array    
                     destinationFile.Write(destinationBuffer);
 
                     destinationFile.Flush();
@@ -172,26 +206,54 @@ namespace OldNewConverter
             }       
         }
 
+
+        private string getData(string source, string name, DataType t)
+        {
+            int index, startIndex, endIndex;
+            string result = "";
+
+            index = source.IndexOf("\"" + name + "\":");
+            startIndex = source.IndexOf(":", index); // (string , start index)
+            endIndex = source.IndexOf(",", startIndex + 1);
+
+            if (t == DataType.Text) 
+                result = source.Substring(startIndex + 3, endIndex - startIndex - 4); // string type with "" 
+
+            if (t == DataType.Number)
+                result = source.Substring(startIndex + 2, endIndex - startIndex - 2); // number type without ""
+
+            return result;
+        }
+
+        private string getLastData(string source, string name, DataType t)
+        {
+            int index, startIndex, endIndex;
+            string result = "";
+
+            index = source.LastIndexOf("\"" + name + "\":");
+            startIndex = source.IndexOf(":", index); // (string , start index)
+            endIndex = source.IndexOf(",", startIndex + 1);
+
+            if (t == DataType.Text)
+                result = source.Substring(startIndex + 3, endIndex - startIndex - 4); // string type with "" 
+
+            if (t == DataType.Number)
+                result = source.Substring(startIndex + 2, endIndex - startIndex - 2); // number type without ""
+
+            return result;
+        }
+
+
         private string cutAndShift(string s, int n)
         {
             try
             {
                 if (n > s.Length) return null;
-                 
-                s = s.Substring(0, n); // first cut
-
-                bool stillSearch = true;
+                int indexOfPoint = s.IndexOf(".");
                 char[] charArray = s.ToCharArray();
-                for (int i = s.Length - 1; i >= 0; i--)
-                {
-                    if (charArray[i] == '0' && stillSearch == true)
-                    {
-                        s = s.Insert(0, " ");
-                    }
-                    else
-                    {
-                        stillSearch = false;
-                    }
+                for (int i = 0; i < (n - indexOfPoint - 3) ; i++) // round in 2 decimals
+                {  
+                  s = s.Insert(0, " ");   
                 }
                 s = s.Substring(0, n); // last cut
                 return s;
@@ -208,6 +270,38 @@ namespace OldNewConverter
                 return null;
             }
         }
+
+        private string expandAndShift(string s, int n)
+        {
+            try
+            {
+                if (n < s.Length) return null;
+
+       
+                char[] charArray = s.ToCharArray();
+
+                int len = s.Length;
+
+                for (int i = 0; i < (n - len) ; i++)
+                {
+                    s = s.Insert(0, " ");
+                }
+                return s;
+            }
+
+            catch (Exception theException) //catch and report the error if there is any
+            {
+                string errorMessage;
+                errorMessage = "Error:";
+                errorMessage = String.Concat(errorMessage, theException.Message);
+                errorMessage = String.Concat(errorMessage, "Line: ");
+                errorMessage = String.Concat(errorMessage, theException.Source);
+
+                MessageBox.Show(errorMessage, "Error");
+                return null;
+            }
+        }
+
 
         private void readExcelFile()
         {
