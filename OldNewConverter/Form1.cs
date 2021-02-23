@@ -93,12 +93,10 @@ namespace OldNewConverter
                     // READ ORIGIN FILE
                     originFile = System.IO.File.OpenText(originFilePath);
                     originString = originFile.ReadToEnd();
-
-
-                    
+       
                     result = getData(originString, "result", 0, SearchType.FirstOcurrence);
 
-                    prg = getData(originString, "prg nr",0, SearchType.FirstOcurrence);
+                    prg = getData(originString, "prg nr", 0, SearchType.FirstOcurrence);
                     prg = expandAndShift(prg, 2);
 
                     cycle = getData(originString, "cycle", 0, SearchType.FirstOcurrence);
@@ -112,7 +110,7 @@ namespace OldNewConverter
 
                     // qc
 
-                    // last result
+                    // ... last result
 
                     // row
 
@@ -124,10 +122,9 @@ namespace OldNewConverter
                     A = getData(originString, "angle", 0, SearchType.LastOcurrence);
                     A = cutAndShift(A, 8);
 
-                    //Tmin = getLastDataWithSubname(originString, "MF TorqueMin", "act", DataType.Number);
-                    //Tmin = cutAndShift(Tmin,5);
-
                     Tmin = "     ";
+                    //...
+                    //Tmin = cutAndShift(Tmin,5);
 
                     Tmax = "     ";
 
