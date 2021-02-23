@@ -41,13 +41,19 @@ namespace OldNewConverter
         public enum DataType
         {
             Text = 0,
-            Number = 1, 
+            Number = 1 
+        }
+
+        public enum SearchType
+        {
+            FirstOcurrence = 0,
+            LastOcurrence = 1
         }
 
         private void readTxtFileButton_Click(object sender, EventArgs e)
         {
 
-            //in the real implementation this information comes from the excel file
+            //in thfe real implementation this information comes from the excel file
             //string originFolderString = "C:\\FTP Server Results\\Origin"; //originFolderTextBox.Text;
             //string destinationFolderString = "C:\\FTP Server Results\\Destination"; //destinationFolderTextBox.Text;
             string destinationFilePath;
@@ -88,19 +94,21 @@ namespace OldNewConverter
                     originFile = System.IO.File.OpenText(originFilePath);
                     originString = originFile.ReadToEnd();
 
-                    result = getData(originString, "result", DataType.Text);
 
-                    prg = getData(originString, "prg nr", DataType.Number);
-                    prg = expandAndShift(prg, 2); 
+                    
+                    result = getData(originString, "result", 0, SearchType.FirstOcurrence);
 
-                    cycle = getData(originString, "cycle", DataType.Number);
+                    prg = getData(originString, "prg nr",0, SearchType.FirstOcurrence);
+                    prg = expandAndShift(prg, 2);
+
+                    cycle = getData(originString, "cycle", 0, SearchType.FirstOcurrence);
                     cycle = expandAndShift(cycle, 7);
 
-                    date = getData(originString, "date", DataType.Text);
+                    date = getData(originString, "date", 0, SearchType.FirstOcurrence);
                     date = date.Insert(11, "H ");
-
-                    id = getData(originString, "id code", DataType.Text);
-                    id = id + "_xxx"; 
+                    
+                    id = getData(originString, "id code", 0, SearchType.FirstOcurrence);
+                    id = id + "_xxx";  
 
                     // qc
 
@@ -110,20 +118,23 @@ namespace OldNewConverter
 
                     // column    
 
-                    T = getLastData(originString, "torque", DataType.Number);
-                    T = cutAndShift(T, 5); 
+                    T = getData(originString, "torque", 0, SearchType.LastOcurrence);
+                    T = cutAndShift(T, 5);
 
-                    A = getLastData(originString, "angle", DataType.Number);
+                    A = getData(originString, "angle", 0, SearchType.LastOcurrence);
                     A = cutAndShift(A, 8);
 
-                    Tmin = getLastDataWithSubname(originString, "MF TorqueMin", "act", DataType.Number);
-                    Tmin = cutAndShift(Tmin,5);
+                    //Tmin = getLastDataWithSubname(originString, "MF TorqueMin", "act", DataType.Number);
+                    //Tmin = cutAndShift(Tmin,5);
+
+                    Tmin = "     ";
 
                     Tmax = "     ";
 
                     Amin = "        ";
 
                     Amax = "        ";
+                    
 
                     // READ MODEL FILE
                     modelFile = System.IO.File.OpenText("C:\\OldNewGateway\\file models\\model.txt");
@@ -144,9 +155,9 @@ namespace OldNewConverter
                     destinationString = destinationString.Insert(index + 34, result);
 
                     index = destinationString.IndexOf('\x0A', index + 1); // redundancy values (optional)
-                    destinationString = destinationString.Insert(index + 6, "     "); // 5 spaces 
-                    destinationString = destinationString.Insert(index + 14, "        "); // 8 spaces
-                    destinationString = destinationString.Insert(index + 26, " 0"); // 2 spaces
+                    destinationString = destinationString.Insert(index + 6, "     "); // MR: 5 spaces 
+                    destinationString = destinationString.Insert(index + 14, "        "); // WR: 8 spaces
+                    destinationString = destinationString.Insert(index + 26, " 0"); // QR: " 0"
 
                     index = destinationString.IndexOf('\x0A', index + 1); // angle limits
                     destinationString = destinationString.Insert(index + 3, Amin); 
@@ -165,29 +176,7 @@ namespace OldNewConverter
                     destinationString = destinationString.Insert(index + 3, cycle);
                     destinationString = destinationString.Insert(index + 13, prg);
 
-
                     index = destinationString.IndexOf('\x0A', index + 1); // hardware ID and channel no.
-
-                    // Add data to the model buffer
-                    // modelBuffer[1] = 0x20;
-
-                    //MessageBox.Show($"len: {modelFileString.Length.ToString()}");
-
-                    //byte stx = 0x03;    
-                    //destinationBuffer[0] = Convert.ToChar(stx);
-
-                    //destinationBuffer[0] = '\x02'; // write direct byte type values
-
-                    //modelBuffer[2] = '\x03';
-                    //Add data to the model string - all data
-                    //modelString = modelString.Insert(20, T);
-                    //modelString = modelString.Insert(34, A);
-                    //modelString = modelString.Insert(43, t); 
-                    //modelString = modelString.Insert(12-1, id);
-                    //MessageBox.Show(modelString);
-
-                    // Create file and copy the information from the buffer
-
 
 
                     destinationFilePath = System.IO.Path.Combine(stations[i].destinationPath, "test-result.txt");
@@ -208,88 +197,42 @@ namespace OldNewConverter
         }
 
 
-        private string getData(string source, string name, DataType t)
+        private string getData(string source, string name, int fromIndex, SearchType t)
         {
-            int index, startIndex, endIndex, endIndexComma, endIndexSpace ;
-            string result = "";
-            
-            index = source.IndexOf("\"" + name + "\":");
-            startIndex = source.IndexOf(":", index); // (string , start index)
-
-            endIndex = source.IndexOf(",", startIndex + 1);
-            /*
-            endIndexComma = source.IndexOf(",", startIndex + 1);
-            endIndexSpace = source.IndexOf(" ", startIndex + 1);
-            if (endIndexSpace < endIndexComma)
-                endIndex = endIndexSpace;
-            else
-                endIndex = endIndexComma;
-            */
-
-            if (t == DataType.Text) 
-                result = source.Substring(startIndex + 3, endIndex - startIndex - 4); // string type with "" 
-
-            if (t == DataType.Number)
-                result = source.Substring(startIndex + 2, endIndex - startIndex - 2); // number type without ""
-
-            return result;
-        }
-
-        private string getLastData(string source, string name, DataType t)
-        {
-            int index, startIndex, endIndex, endIndexComma, endIndexSpace;
+            int index = 0, i;
             string result = "";
 
-            index = source.LastIndexOf("\"" + name + "\":");
-            startIndex = source.IndexOf(":", index); // (string , start index)
-   
-            endIndex = source.IndexOf(",", index);
-            /*
-            endIndexComma = source.IndexOf(",", startIndex + 1);
-            endIndexSpace = source.IndexOf(" ", startIndex + 1);
-            if (endIndexSpace < endIndexComma)
-                endIndex = endIndexSpace;
-            else
-                endIndex = endIndexComma;
-            */
+            char[] charArray = source.ToCharArray();
 
-            if (t == DataType.Text)
-                result = source.Substring(startIndex + 3, endIndex - startIndex - 4); // string type with "" 
 
-            if (t == DataType.Number)
-                result = source.Substring(startIndex + 2, endIndex - startIndex - 2); // number type without ""
+            if (t == SearchType.FirstOcurrence)
+                index = source.IndexOf("\"" + name + "\":", fromIndex);
 
+            if (t == SearchType.LastOcurrence)
+                index = source.LastIndexOf("\"" + name + "\":");
+
+            index = index + name.Length + 4; // two quotation marks, one colon and a space
+
+            if (charArray[index] == '"') // string case
+            {
+                i = 1; // offset of the quotation mark
+                while (charArray[i + index] != '"')
+                {
+                    result = result.Insert(result.Length, charArray[i + index].ToString());
+                    i++;
+                }
+            }
+            else // number case
+            {
+                i = 0; // no offset
+                while (charArray[i + index] != ',' && charArray[i + index] != ' ')
+                {
+                    result = result.Insert(result.Length, charArray[i + index].ToString());
+                    i++;
+                }
+            }
             return result;
         }
-
-        private string getLastDataWithSubname(string source, string name, string subName,  DataType t)
-        {
-            int index, startIndex, endIndex, endIndexComma, endIndexSpace;
-            string result = "";
-
-            index = source.LastIndexOf("\"" + name + "\":");
-            index = source.IndexOf("\"" + subName + "\":", index);
-            startIndex = source.IndexOf(":", index); // (string , start index)
-
-            endIndex = source.IndexOf(" ", startIndex + 1);
-            /*
-            endIndexComma = source.IndexOf(",", startIndex + 1);
-            endIndexSpace = source.IndexOf(" ", startIndex + 1);
-            if (endIndexSpace < endIndexComma)
-                endIndex = endIndexSpace;
-            else
-                endIndex = endIndexComma;
-            */
-
-            if (t == DataType.Text)
-                result = source.Substring(startIndex + 3, endIndex - startIndex - 4); // string type with "" 
-
-            if (t == DataType.Number)
-                result = source.Substring(startIndex + 2, endIndex - startIndex - 2); // number type without ""
-
-            return result;
-        }
-
 
         private string cutAndShift(string s, int n)
         {
@@ -298,9 +241,9 @@ namespace OldNewConverter
                 if (n > s.Length) return null;
                 int indexOfPoint = s.IndexOf(".");
                 char[] charArray = s.ToCharArray();
-                for (int i = 0; i < (n - indexOfPoint - 3) ; i++) // round in 2 decimals
-                {  
-                  s = s.Insert(0, " ");   
+                for (int i = 0; i < (n - indexOfPoint - 3); i++) // round in 2 decimals
+                {
+                    s = s.Insert(0, " ");
                 }
                 s = s.Substring(0, n); // last cut
                 return s;
@@ -323,19 +266,14 @@ namespace OldNewConverter
             try
             {
                 if (n < s.Length) return null;
-
-       
                 char[] charArray = s.ToCharArray();
-
                 int len = s.Length;
-
                 for (int i = 0; i < (n - len) ; i++)
                 {
                     s = s.Insert(0, " ");
                 }
                 return s;
             }
-
             catch (Exception theException) //catch and report the error if there is any
             {
                 string errorMessage;
@@ -348,7 +286,6 @@ namespace OldNewConverter
                 return null;
             }
         }
-
 
         private void readExcelFile()
         {
@@ -404,6 +341,75 @@ namespace OldNewConverter
 
 
 /*
+ 
+     // Add data to the model buffer
+                    // modelBuffer[1] = 0x20;
+
+                    //MessageBox.Show($"len: {modelFileString.Length.ToString()}");
+
+                    //byte stx = 0x03;    
+                    //destinationBuffer[0] = Convert.ToChar(stx);
+
+                    //destinationBuffer[0] = '\x02'; // write direct byte type values
+
+                    //modelBuffer[2] = '\x03';
+                    //Add data to the model string - all data
+                    //modelString = modelString.Insert(20, T);
+                    //modelString = modelString.Insert(34, A);
+                    //modelString = modelString.Insert(43, t); 
+                    //modelString = modelString.Insert(12-1, id);
+                    //MessageBox.Show(modelString);
+
+                    // Create file and copy the information from the buffer
+
+
+     private string getLastData(string source, string name, DataType t)
+        {
+            int index, startIndex, endIndex, endIndexComma, endIndexSpace;
+            string result = "";
+
+            index = source.LastIndexOf("\"" + name + "\":");
+            startIndex = source.IndexOf(":", index); // (string , start index)
+   
+            endIndex = source.IndexOf(",", startIndex + 1);
+            
+
+            if (t == DataType.Text)
+                result = source.Substring(startIndex + 3, endIndex - startIndex - 4); // string type with "" 
+
+            if (t == DataType.Number)
+                result = source.Substring(startIndex + 2, endIndex - startIndex - 2); // number type without ""
+
+            return result;
+        }
+
+  
+   private string getData(string source, string name, DataType t)
+        {
+            int index, startIndex, endIndex, endIndexComma, endIndexSpace ;
+            string result = "";
+            
+            index = source.IndexOf("\"" + name + "\":");
+            startIndex = source.IndexOf(":", index); // (string , start index)
+
+            endIndex = source.IndexOf(",", startIndex + 1);
+           
+            endIndexComma = source.IndexOf(",", startIndex + 1);
+            endIndexSpace = source.IndexOf(" ", startIndex + 1);
+            if (endIndexSpace < endIndexComma)
+                endIndex = endIndexSpace;
+            else
+                endIndex = endIndexComma;
+          
+
+            if (t == DataType.Text) 
+                result = source.Substring(startIndex + 3, endIndex - startIndex - 4); // string type with "" 
+
+            if (t == DataType.Number)
+                result = source.Substring(startIndex + 2, endIndex - startIndex - 2); // number type without ""
+
+            return result;
+        }
     destinationFile.Write(destinationBuffer, 0, 10); //(index,count)
     modelFile.Read(modelBuffer, 0, modelBuffer.Length - 1); // read
     string modelString = new string(modelBuffer); // convert to string
