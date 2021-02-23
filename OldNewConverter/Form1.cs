@@ -116,7 +116,8 @@ namespace OldNewConverter
                     A = getLastData(originString, "angle", DataType.Number);
                     A = cutAndShift(A, 8);
 
-                    Tmin = "     ";
+                    Tmin = getLastDataWithSubname(originString, "MF TorqueMin", "act", DataType.Number);
+                    Tmin = cutAndShift(Tmin,5);
 
                     Tmax = "     ";
 
@@ -209,12 +210,21 @@ namespace OldNewConverter
 
         private string getData(string source, string name, DataType t)
         {
-            int index, startIndex, endIndex;
+            int index, startIndex, endIndex, endIndexComma, endIndexSpace ;
             string result = "";
-
+            
             index = source.IndexOf("\"" + name + "\":");
             startIndex = source.IndexOf(":", index); // (string , start index)
+
             endIndex = source.IndexOf(",", startIndex + 1);
+            /*
+            endIndexComma = source.IndexOf(",", startIndex + 1);
+            endIndexSpace = source.IndexOf(" ", startIndex + 1);
+            if (endIndexSpace < endIndexComma)
+                endIndex = endIndexSpace;
+            else
+                endIndex = endIndexComma;
+            */
 
             if (t == DataType.Text) 
                 result = source.Substring(startIndex + 3, endIndex - startIndex - 4); // string type with "" 
@@ -227,12 +237,49 @@ namespace OldNewConverter
 
         private string getLastData(string source, string name, DataType t)
         {
-            int index, startIndex, endIndex;
+            int index, startIndex, endIndex, endIndexComma, endIndexSpace;
             string result = "";
 
             index = source.LastIndexOf("\"" + name + "\":");
             startIndex = source.IndexOf(":", index); // (string , start index)
-            endIndex = source.IndexOf(",", startIndex + 1);
+   
+            endIndex = source.IndexOf(",", index);
+            /*
+            endIndexComma = source.IndexOf(",", startIndex + 1);
+            endIndexSpace = source.IndexOf(" ", startIndex + 1);
+            if (endIndexSpace < endIndexComma)
+                endIndex = endIndexSpace;
+            else
+                endIndex = endIndexComma;
+            */
+
+            if (t == DataType.Text)
+                result = source.Substring(startIndex + 3, endIndex - startIndex - 4); // string type with "" 
+
+            if (t == DataType.Number)
+                result = source.Substring(startIndex + 2, endIndex - startIndex - 2); // number type without ""
+
+            return result;
+        }
+
+        private string getLastDataWithSubname(string source, string name, string subName,  DataType t)
+        {
+            int index, startIndex, endIndex, endIndexComma, endIndexSpace;
+            string result = "";
+
+            index = source.LastIndexOf("\"" + name + "\":");
+            index = source.IndexOf("\"" + subName + "\":", index);
+            startIndex = source.IndexOf(":", index); // (string , start index)
+
+            endIndex = source.IndexOf(" ", startIndex + 1);
+            /*
+            endIndexComma = source.IndexOf(",", startIndex + 1);
+            endIndexSpace = source.IndexOf(" ", startIndex + 1);
+            if (endIndexSpace < endIndexComma)
+                endIndex = endIndexSpace;
+            else
+                endIndex = endIndexComma;
+            */
 
             if (t == DataType.Text)
                 result = source.Substring(startIndex + 3, endIndex - startIndex - 4); // string type with "" 
