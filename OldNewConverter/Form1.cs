@@ -9,9 +9,6 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Excel = Microsoft.Office.Interop.Excel;
 
-
-
-
 namespace OldNewConverter
 {
     public partial class Form1 : Form
@@ -27,21 +24,14 @@ namespace OldNewConverter
             public string ip;
             public string originPath;
             public string destinationPath;
-
-            /*
+      
             public Station (string name, string ip, string originPath, string destinationPath)
             {
                 this.name = name;
                 this.ip = ip;
                 this.originPath = originPath;
                 this.destinationPath = destinationPath;
-            }*/
-        }
-
-        public enum DataType
-        {
-            Text = 0,
-            Number = 1 
+            }
         }
 
         public enum SearchType
@@ -50,7 +40,7 @@ namespace OldNewConverter
             LastOcurrence = 1
         }
 
-        private void readTxtFileButton_Click(object sender, EventArgs e)
+        private void startStopButton_Click(object sender, EventArgs e)
         {
 
             //in thfe real implementation this information comes from the excel file
@@ -67,27 +57,27 @@ namespace OldNewConverter
             int maxStationNumber = 5;
             Station[] stations = new Station[maxStationNumber];
 
+            //stations = readExcelFile(); // 
 
-            readExcelFile();
+            stations[0].name = "Prueba";
+            stations[0].ip = "ip prueba";
+            stations[0].originPath = originTextBox.Text; // "C:\\FTP Server Results\\Origin";
+            stations[0].destinationPath = destinationTextBox.Text;  //"C:\\FTP Server Results\\Destination";
 
-            stations[0].name = "OP100";
-            stations[0].ip = "172.16.1.23";
-            stations[0].originPath = "C:\\FTP Server Results\\Origin";
-            stations[0].destinationPath = "C:\\FTP Server Results\\Destination";
-
+            /*
             stations[1].name = "OP200";
             stations[1].ip = "172.16.1.24";
             stations[1].originPath = "C:\\FTP Server Results\\Origin_2";
             stations[1].destinationPath = "C:\\FTP Server Results\\Destination_2";
-
+            */
             int i = 0;
             while ( ! String.IsNullOrEmpty (stations[i].name))
             {
                 IEnumerable<string> filePaths = System.IO.Directory.EnumerateFiles(stations[i].originPath, "*.json", System.IO.SearchOption.AllDirectories);
                 foreach (string originFilePath in filePaths) //all the .json files in that folder and subfolders
                 {
-                    int index, startIndex, endIndex;
-                    string result, prg, cycle, date, id, qc, Tmin, T, Tmax, Amin, A, Amax, t, tmax;
+                    int index;
+                    string result, prg, cycle, date, id, qc, row, column, step, sb, Tmin, T, Tmax, Amin, A, Amax;
                     string originString, destinationString;
 
                     // READ ORIGIN FILE
@@ -106,15 +96,17 @@ namespace OldNewConverter
                     date = date.Insert(11, "H ");
                     
                     id = getData(originString, "id code", 0, SearchType.FirstOcurrence);
-                    id = id + "_xxx";  
+                    id = id + "_xxx";
 
-                    // qc
+                    qc = getData(originString, "quality code", 0, SearchType.FirstOcurrence);
+                    qc = expandAndShift(qc, 3);
 
                     // ... last result
 
-                    // row
-
-                    // column    
+                    row = getData(originString, "row", 0, SearchType.LastOcurrence);
+                    row = expandAndShift(row, 2);
+                    column = getData(originString, "column", 0, SearchType.LastOcurrence);
+                    step = row.Insert(row.Length, column);
 
                     T = getData(originString, "torque", 0, SearchType.LastOcurrence);
                     T = cutAndShift(T, 5);
@@ -122,17 +114,22 @@ namespace OldNewConverter
                     A = getData(originString, "angle", 0, SearchType.LastOcurrence);
                     A = cutAndShift(A, 8);
 
-                    Tmin = "     ";
-                    //...
-                    //Tmin = cutAndShift(Tmin,5);
+                    index = originString.LastIndexOf("MF TorqueMin");
+                    Tmin = getData(originString, "nom", index, SearchType.FirstOcurrence);
+                    Tmin = cutAndShift(Tmin, 5);
+                  
+                    index = originString.LastIndexOf("MFs TorqueMax");
+                    Tmax = getData(originString, "nom", index, SearchType.FirstOcurrence);
+                    Tmax = cutAndShift(Tmax, 5);
 
-                    Tmax = "     ";
+                    index = originString.LastIndexOf("MF AngleMin");
+                    Amin = getData(originString, "nom", index, SearchType.FirstOcurrence);
+                    Amin = expandAndShift(Amin, 8);
 
-                    Amin = "        ";
-
-                    Amax = "        ";
-                    
-
+                    index = originString.LastIndexOf("MFs AngleMax");
+                    Amax = getData(originString, "nom", index, SearchType.FirstOcurrence);
+                    Amax = expandAndShift(Amax, 8);
+                  
                     // READ MODEL FILE
                     modelFile = System.IO.File.OpenText("C:\\OldNewGateway\\file models\\model.txt");
                     destinationString = modelFile.ReadToEnd(); // read as string
@@ -164,17 +161,20 @@ namespace OldNewConverter
                     destinationString = destinationString.Insert(index + 6, Tmin);
                     destinationString = destinationString.Insert(index + 17, Tmax);
 
-
                     index = destinationString.IndexOf('\x0A', index + 1); // gradient limits
+                    destinationString = destinationString.Insert(index + 5, "      ");
+                    destinationString = destinationString.Insert(index + 17, "     ");
 
                     index = destinationString.IndexOf('\x0A', index + 1); // step, quality code, stopped by
+                    destinationString = destinationString.Insert(index + 3, step);
+                    destinationString = destinationString.Insert(index + 11, qc);
+                    destinationString = destinationString.Insert(index + 18, " 3");
 
                     index = destinationString.IndexOf('\x0A', index + 1); // consecutive no. and program no.
                     destinationString = destinationString.Insert(index + 3, cycle);
                     destinationString = destinationString.Insert(index + 13, prg);
 
                     index = destinationString.IndexOf('\x0A', index + 1); // hardware ID and channel no.
-
 
                     destinationFilePath = System.IO.Path.Combine(stations[i].destinationPath, "test-result.txt");
                     destinationFile = System.IO.File.CreateText(destinationFilePath);
@@ -284,7 +284,7 @@ namespace OldNewConverter
             }
         }
 
-        private void readExcelFile()
+        private void readExcelFile() // todo - resturn an array of stations (readed from each row)
         {
             Excel.Application oXL;
             Excel._Workbook oWB;
@@ -306,8 +306,8 @@ namespace OldNewConverter
 
                 oSheet.Cells[1, 2] = "Station Name";
 
-                originFolderTextBox.Text = oSheet.Cells[2, 3].Value2; // then change the 2 with a variable to iterate al the file
-                destinationFolderTextBox.Text = oSheet.Cells[2, 4].Value2;
+                originTextBox.Text = oSheet.Cells[2, 3].Value2; // then change the 2 with a variable to iterate al the file
+                destinationTextBox.Text = oSheet.Cells[2, 4].Value2;
 
                 oXL.Visible = false;
                 oXL.UserControl = false;
@@ -328,9 +328,7 @@ namespace OldNewConverter
             }
         }
 
-        private void readExcelFileButton_Click(object sender, EventArgs e)
-        {
-        }
+  
     }
 };
 

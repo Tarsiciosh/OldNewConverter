@@ -28,90 +28,77 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.readTxtFileButton = new System.Windows.Forms.Button();
-            this.configPathTextBox = new System.Windows.Forms.TextBox();
-            this.readExcelFileButton = new System.Windows.Forms.Button();
-            this.originFolderLabel = new System.Windows.Forms.Label();
-            this.originFolderTextBox = new System.Windows.Forms.TextBox();
-            this.destinationFolderTextBox = new System.Windows.Forms.TextBox();
-            this.destinationFolderLabel = new System.Windows.Forms.Label();
+            this.startStopButton = new System.Windows.Forms.Button();
+            this.statusLabel = new System.Windows.Forms.Label();
+            this.originLabel = new System.Windows.Forms.Label();
+            this.DestinationLabel = new System.Windows.Forms.Label();
+            this.originTextBox = new System.Windows.Forms.TextBox();
+            this.destinationTextBox = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
-            // readTxtFileButton
+            // startStopButton
             // 
-            this.readTxtFileButton.Location = new System.Drawing.Point(413, 86);
-            this.readTxtFileButton.Name = "readTxtFileButton";
-            this.readTxtFileButton.Size = new System.Drawing.Size(75, 23);
-            this.readTxtFileButton.TabIndex = 0;
-            this.readTxtFileButton.Text = "Read txt";
-            this.readTxtFileButton.UseVisualStyleBackColor = true;
-            this.readTxtFileButton.Click += new System.EventHandler(this.readTxtFileButton_Click);
+            this.startStopButton.Location = new System.Drawing.Point(12, 12);
+            this.startStopButton.Name = "startStopButton";
+            this.startStopButton.Size = new System.Drawing.Size(71, 24);
+            this.startStopButton.TabIndex = 0;
+            this.startStopButton.Text = "Start";
+            this.startStopButton.UseVisualStyleBackColor = true;
+            this.startStopButton.Click += new System.EventHandler(this.startStopButton_Click);
             // 
-            // configPathTextBox
+            // statusLabel
             // 
-            this.configPathTextBox.Location = new System.Drawing.Point(12, 12);
-            this.configPathTextBox.Name = "configPathTextBox";
-            this.configPathTextBox.Size = new System.Drawing.Size(224, 20);
-            this.configPathTextBox.TabIndex = 1;
-            this.configPathTextBox.Text = "C:\\OldNewGateway\\config\\stations.xlsx";
+            this.statusLabel.AutoSize = true;
+            this.statusLabel.Location = new System.Drawing.Point(106, 18);
+            this.statusLabel.Name = "statusLabel";
+            this.statusLabel.Size = new System.Drawing.Size(45, 13);
+            this.statusLabel.TabIndex = 1;
+            this.statusLabel.Text = "stopped";
             // 
-            // readExcelFileButton
+            // originLabel
             // 
-            this.readExcelFileButton.AllowDrop = true;
-            this.readExcelFileButton.Location = new System.Drawing.Point(242, 10);
-            this.readExcelFileButton.Name = "readExcelFileButton";
-            this.readExcelFileButton.Size = new System.Drawing.Size(75, 23);
-            this.readExcelFileButton.TabIndex = 2;
-            this.readExcelFileButton.Text = "Read Excel File";
-            this.readExcelFileButton.UseVisualStyleBackColor = true;
-            this.readExcelFileButton.Click += new System.EventHandler(this.readExcelFileButton_Click);
+            this.originLabel.AutoSize = true;
+            this.originLabel.Location = new System.Drawing.Point(57, 83);
+            this.originLabel.Name = "originLabel";
+            this.originLabel.Size = new System.Drawing.Size(81, 13);
+            this.originLabel.TabIndex = 2;
+            this.originLabel.Text = "Origin File Path:";
             // 
-            // originFolderLabel
+            // DestinationLabel
             // 
-            this.originFolderLabel.AutoSize = true;
-            this.originFolderLabel.Location = new System.Drawing.Point(39, 54);
-            this.originFolderLabel.Name = "originFolderLabel";
-            this.originFolderLabel.Size = new System.Drawing.Size(100, 13);
-            this.originFolderLabel.TabIndex = 3;
-            this.originFolderLabel.Text = "Origin Folder Name:";
+            this.DestinationLabel.AutoSize = true;
+            this.DestinationLabel.Location = new System.Drawing.Point(31, 117);
+            this.DestinationLabel.Name = "DestinationLabel";
+            this.DestinationLabel.Size = new System.Drawing.Size(107, 13);
+            this.DestinationLabel.TabIndex = 3;
+            this.DestinationLabel.Text = "Destination File Path:";
             // 
-            // originFolderTextBox
+            // originTextBox
             // 
-            this.originFolderTextBox.Location = new System.Drawing.Point(145, 51);
-            this.originFolderTextBox.Name = "originFolderTextBox";
-            this.originFolderTextBox.Size = new System.Drawing.Size(229, 20);
-            this.originFolderTextBox.TabIndex = 4;
+            this.originTextBox.Location = new System.Drawing.Point(144, 80);
+            this.originTextBox.Name = "originTextBox";
+            this.originTextBox.Size = new System.Drawing.Size(300, 20);
+            this.originTextBox.TabIndex = 4;
+            this.originTextBox.Text = "C:\\FTP Server Results\\Origin";
             // 
-            // destinationFolderTextBox
+            // destinationTextBox
             // 
-            this.destinationFolderTextBox.Location = new System.Drawing.Point(145, 78);
-            this.destinationFolderTextBox.Name = "destinationFolderTextBox";
-            this.destinationFolderTextBox.Size = new System.Drawing.Size(229, 20);
-            this.destinationFolderTextBox.TabIndex = 6;
-            // 
-            // destinationFolderLabel
-            // 
-            this.destinationFolderLabel.AutoSize = true;
-            this.destinationFolderLabel.Location = new System.Drawing.Point(13, 81);
-            this.destinationFolderLabel.Name = "destinationFolderLabel";
-            this.destinationFolderLabel.Size = new System.Drawing.Size(126, 13);
-            this.destinationFolderLabel.TabIndex = 5;
-            this.destinationFolderLabel.Text = "Destination Folder Name:";
+            this.destinationTextBox.Location = new System.Drawing.Point(144, 114);
+            this.destinationTextBox.Name = "destinationTextBox";
+            this.destinationTextBox.Size = new System.Drawing.Size(300, 20);
+            this.destinationTextBox.TabIndex = 5;
+            this.destinationTextBox.Text = "C:\\FTP Server Results\\Destination";
             // 
             // Form1
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(500, 121);
-            this.Controls.Add(this.destinationFolderTextBox);
-            this.Controls.Add(this.destinationFolderLabel);
-            this.Controls.Add(this.originFolderTextBox);
-            this.Controls.Add(this.originFolderLabel);
-            this.Controls.Add(this.readExcelFileButton);
-            this.Controls.Add(this.configPathTextBox);
-            this.Controls.Add(this.readTxtFileButton);
+            this.ClientSize = new System.Drawing.Size(520, 190);
+            this.Controls.Add(this.destinationTextBox);
+            this.Controls.Add(this.originTextBox);
+            this.Controls.Add(this.DestinationLabel);
+            this.Controls.Add(this.originLabel);
+            this.Controls.Add(this.statusLabel);
+            this.Controls.Add(this.startStopButton);
             this.Name = "Form1";
-            this.Text = "Form1";
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -119,13 +106,12 @@
 
         #endregion
 
-        private System.Windows.Forms.Button readTxtFileButton;
-        private System.Windows.Forms.TextBox configPathTextBox;
-        private System.Windows.Forms.Button readExcelFileButton;
-        private System.Windows.Forms.Label originFolderLabel;
-        private System.Windows.Forms.TextBox originFolderTextBox;
-        private System.Windows.Forms.TextBox destinationFolderTextBox;
-        private System.Windows.Forms.Label destinationFolderLabel;
+        private System.Windows.Forms.Button startStopButton;
+        private System.Windows.Forms.Label statusLabel;
+        private System.Windows.Forms.Label originLabel;
+        private System.Windows.Forms.Label DestinationLabel;
+        private System.Windows.Forms.TextBox originTextBox;
+        private System.Windows.Forms.TextBox destinationTextBox;
     }
 }
 
