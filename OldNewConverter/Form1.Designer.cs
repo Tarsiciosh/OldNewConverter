@@ -99,6 +99,7 @@
             this.Controls.Add(this.statusLabel);
             this.Controls.Add(this.startStopButton);
             this.Name = "Form1";
+            this.Text = "Old New Converter";
             this.ResumeLayout(false);
             this.PerformLayout();
 
