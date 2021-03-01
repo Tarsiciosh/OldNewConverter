@@ -49,7 +49,7 @@
             // statusLabel
             // 
             this.statusLabel.AutoSize = true;
-            this.statusLabel.Location = new System.Drawing.Point(106, 18);
+            this.statusLabel.Location = new System.Drawing.Point(93, 18);
             this.statusLabel.Name = "statusLabel";
             this.statusLabel.Size = new System.Drawing.Size(45, 13);
             this.statusLabel.TabIndex = 1;
@@ -58,7 +58,7 @@
             // originLabel
             // 
             this.originLabel.AutoSize = true;
-            this.originLabel.Location = new System.Drawing.Point(57, 83);
+            this.originLabel.Location = new System.Drawing.Point(57, 58);
             this.originLabel.Name = "originLabel";
             this.originLabel.Size = new System.Drawing.Size(81, 13);
             this.originLabel.TabIndex = 2;
@@ -67,7 +67,7 @@
             // DestinationLabel
             // 
             this.DestinationLabel.AutoSize = true;
-            this.DestinationLabel.Location = new System.Drawing.Point(31, 117);
+            this.DestinationLabel.Location = new System.Drawing.Point(31, 92);
             this.DestinationLabel.Name = "DestinationLabel";
             this.DestinationLabel.Size = new System.Drawing.Size(107, 13);
             this.DestinationLabel.TabIndex = 3;
@@ -75,7 +75,7 @@
             // 
             // originTextBox
             // 
-            this.originTextBox.Location = new System.Drawing.Point(144, 80);
+            this.originTextBox.Location = new System.Drawing.Point(144, 55);
             this.originTextBox.Name = "originTextBox";
             this.originTextBox.Size = new System.Drawing.Size(300, 20);
             this.originTextBox.TabIndex = 4;
@@ -83,7 +83,7 @@
             // 
             // destinationTextBox
             // 
-            this.destinationTextBox.Location = new System.Drawing.Point(144, 114);
+            this.destinationTextBox.Location = new System.Drawing.Point(144, 89);
             this.destinationTextBox.Name = "destinationTextBox";
             this.destinationTextBox.Size = new System.Drawing.Size(300, 20);
             this.destinationTextBox.TabIndex = 5;
@@ -91,7 +91,7 @@
             // 
             // Form1
             // 
-            this.ClientSize = new System.Drawing.Size(520, 190);
+            this.ClientSize = new System.Drawing.Size(477, 140);
             this.Controls.Add(this.destinationTextBox);
             this.Controls.Add(this.originTextBox);
             this.Controls.Add(this.DestinationLabel);
@@ -100,6 +100,7 @@
             this.Controls.Add(this.startStopButton);
             this.Name = "Form1";
             this.Text = "Old New Converter";
+            this.Load += new System.EventHandler(this.Form1_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

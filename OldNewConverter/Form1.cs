@@ -42,17 +42,9 @@ namespace OldNewConverter
 
         private void startStopButton_Click(object sender, EventArgs e)
         {
-
-            //in thfe real implementation this information comes from the excel file
-            //string originFolderString = "C:\\FTP Server Results\\Origin"; //originFolderTextBox.Text;
-            //string destinationFolderString = "C:\\FTP Server Results\\Destination"; //destinationFolderTextBox.Text;
-            string destinationFilePath;
-
             System.IO.StreamReader originFile;
             System.IO.StreamReader modelFile;
             System.IO.StreamWriter destinationFile;
-
-            char[] destinationBuffer;
 
             int maxStationNumber = 5;
             Station[] stations = new Station[maxStationNumber];
@@ -79,6 +71,7 @@ namespace OldNewConverter
                     int index;
                     string result, prg, cycle, date, id, qc, row, column, step, sb, Tmin, T, Tmax, Amin, A, Amax;
                     string originString, destinationString;
+                    string destinationFilePath;
 
                     // READ ORIGIN FILE
                     originFile = System.IO.File.OpenText(originFilePath);
@@ -179,8 +172,7 @@ namespace OldNewConverter
                     destinationFilePath = System.IO.Path.Combine(stations[i].destinationPath, "test-result.txt");
                     destinationFile = System.IO.File.CreateText(destinationFilePath);
 
-                    destinationBuffer = destinationString.ToCharArray(); // convert to char array    
-                    destinationFile.Write(destinationBuffer);
+                    destinationFile.Write(destinationString.ToCharArray());
 
                     destinationFile.Flush();
 
@@ -194,13 +186,15 @@ namespace OldNewConverter
         }
 
 
+        private void readAndWriteFiles ()
+
+
         private string getData(string source, string name, int fromIndex, SearchType t)
         {
             int index = 0, i;
             string result = "";
 
             char[] charArray = source.ToCharArray();
-
 
             if (t == SearchType.FirstOcurrence)
                 index = source.IndexOf("\"" + name + "\":", fromIndex);
@@ -210,7 +204,7 @@ namespace OldNewConverter
 
             index = index + name.Length + 4; // two quotation marks, one colon and a space
 
-            if (charArray[index] == '"') // string case
+            if (charArray[index] == '"') // string case!
             {
                 i = 1; // offset of the quotation mark
                 while (charArray[i + index] != '"')
@@ -219,7 +213,7 @@ namespace OldNewConverter
                     i++;
                 }
             }
-            else // number case
+            else // number case!
             {
                 i = 0; // no offset
                 while (charArray[i + index] != ',' && charArray[i + index] != ' ')
@@ -252,7 +246,6 @@ namespace OldNewConverter
                 errorMessage = String.Concat(errorMessage, theException.Message);
                 errorMessage = String.Concat(errorMessage, "Line: ");
                 errorMessage = String.Concat(errorMessage, theException.Source);
-
                 MessageBox.Show(errorMessage, "Error");
                 return null;
             }
@@ -278,7 +271,6 @@ namespace OldNewConverter
                 errorMessage = String.Concat(errorMessage, theException.Message);
                 errorMessage = String.Concat(errorMessage, "Line: ");
                 errorMessage = String.Concat(errorMessage, theException.Source);
-
                 MessageBox.Show(errorMessage, "Error");
                 return null;
             }
@@ -323,13 +315,20 @@ namespace OldNewConverter
                 errorMessage = String.Concat(errorMessage, theException.Message);
                 errorMessage = String.Concat(errorMessage, "Line: ");
                 errorMessage = String.Concat(errorMessage, theException.Source);
-
                 MessageBox.Show(errorMessage, "Error");
             }
         }
 
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 };
+
+
+
+
 
 
 
