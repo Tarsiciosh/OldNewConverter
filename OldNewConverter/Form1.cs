@@ -6,8 +6,10 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows.Forms;
 using Excel = Microsoft.Office.Interop.Excel;
+
 
 namespace OldNewConverter
 {
@@ -16,6 +18,7 @@ namespace OldNewConverter
         public Form1()
         {
             InitializeComponent();
+            SetupDataGridView();
         }
 
         struct Station
@@ -40,30 +43,88 @@ namespace OldNewConverter
             LastOcurrence = 1
         }
 
+        static int maxStationNumber = 5;
+        Station[] stations = new Station[maxStationNumber];
+
         private void startStopButton_Click(object sender, EventArgs e)
+        {
+            if (startStopButton.Text == "Start")
+            {
+
+                // starts the service... 
+
+                // (onother function) when there is new data from the service update the grid
+                foreach (Station station in stations)
+                {
+                    string[] row = { station.name, station.ip, station.originPath, station.destinationPath};
+                    stationsDataGridView.Rows.Add(row);
+                }
+
+                // create the timer (this must be in the service initialization)
+                // set up a timer that triggers every second
+                System.Timers.Timer myTimer = new System.Timers.Timer();
+                myTimer.Interval = 1000; // 1 second
+                myTimer.Elapsed += new ElapsedEventHandler(this.OnTimer);
+                myTimer.Start();
+
+                // activate the windows service
+                // create each worker for each station
+                // if all other steps where ok display "Started"
+
+                statusLabel.Text = "Started";
+                statusLabel.ForeColor = Color.Green;
+                startStopButton.Text = "Stop";
+            }
+            else
+            {
+                // stop and delete all workers
+                // erase the content of the data grid view
+                int count = stationsDataGridView.RowCount;
+                for (int i = 0; i < count; i++)
+                {
+                    stationsDataGridView.Rows.RemoveAt(0);
+                }
+                // if all other steps where ok display "stopped" 
+                statusLabel.Text = "Stopped";
+                statusLabel.ForeColor = Color.Red;
+                startStopButton.Text = "Start";
+            }
+        }
+
+
+        public void OnTimer(object sender, ElapsedEventArgs args)
+        {
+            readAndWriteStationData(stations);
+        }
+
+
+        private void readAndWriteStationData(Station[] stations)
         {
             System.IO.StreamReader originFile;
             System.IO.StreamReader modelFile;
             System.IO.StreamWriter destinationFile;
 
-            int maxStationNumber = 5;
-            Station[] stations = new Station[maxStationNumber];
-
-            //stations = readExcelFile(); // 
-
+            
+            
+            
+            //------> when the service starts o reinitiates it reads the file and fill the stations array!!!
+            //stations = readExcelFile(); // read the configuration file
             stations[0].name = "Prueba";
             stations[0].ip = "ip prueba";
             stations[0].originPath = originTextBox.Text; // "C:\\FTP Server Results\\Origin";
             stations[0].destinationPath = destinationTextBox.Text;  //"C:\\FTP Server Results\\Destination";
 
-            /*
-            stations[1].name = "OP200";
-            stations[1].ip = "172.16.1.24";
-            stations[1].originPath = "C:\\FTP Server Results\\Origin_2";
-            stations[1].destinationPath = "C:\\FTP Server Results\\Destination_2";
-            */
+            stations[1].name = "Prueba 2";
+            stations[1].ip = "ip prueba 2";
+            stations[1].originPath = originTextBox.Text; // "C:\\FTP Server Results\\Origin";
+            stations[1].destinationPath = destinationTextBox.Text;  //"C:\\FTP Server Results\\Destination";
+
+
+
+
+
             int i = 0;
-            while ( ! String.IsNullOrEmpty (stations[i].name))
+            while (!String.IsNullOrEmpty(stations[i].name))
             {
                 IEnumerable<string> filePaths = System.IO.Directory.EnumerateFiles(stations[i].originPath, "*.json", System.IO.SearchOption.AllDirectories);
                 foreach (string originFilePath in filePaths) //all the .json files in that folder and subfolders
@@ -76,7 +137,7 @@ namespace OldNewConverter
                     // READ ORIGIN FILE
                     originFile = System.IO.File.OpenText(originFilePath);
                     originString = originFile.ReadToEnd();
-       
+
                     result = getData(originString, "result", 0, SearchType.FirstOcurrence);
 
                     prg = getData(originString, "prg nr", 0, SearchType.FirstOcurrence);
@@ -87,7 +148,7 @@ namespace OldNewConverter
 
                     date = getData(originString, "date", 0, SearchType.FirstOcurrence);
                     date = date.Insert(11, "H ");
-                    
+
                     id = getData(originString, "id code", 0, SearchType.FirstOcurrence);
                     id = id + "_xxx";
 
@@ -110,7 +171,7 @@ namespace OldNewConverter
                     index = originString.LastIndexOf("MF TorqueMin");
                     Tmin = getData(originString, "nom", index, SearchType.FirstOcurrence);
                     Tmin = cutAndShift(Tmin, 5);
-                  
+
                     index = originString.LastIndexOf("MFs TorqueMax");
                     Tmax = getData(originString, "nom", index, SearchType.FirstOcurrence);
                     Tmax = cutAndShift(Tmax, 5);
@@ -122,18 +183,18 @@ namespace OldNewConverter
                     index = originString.LastIndexOf("MFs AngleMax");
                     Amax = getData(originString, "nom", index, SearchType.FirstOcurrence);
                     Amax = expandAndShift(Amax, 8);
-                  
+
                     // READ MODEL FILE
                     modelFile = System.IO.File.OpenText("C:\\OldNewGateway\\file models\\model.txt");
                     destinationString = modelFile.ReadToEnd(); // read as string
 
                     //ID code souce and ID code
-                    destinationString = destinationString.Insert(12-1, id); 
+                    destinationString = destinationString.Insert(12 - 1, id);
 
-                    index = destinationString.IndexOf('\x0A'); 
+                    index = destinationString.IndexOf('\x0A');
 
                     index = destinationString.IndexOf('\x0A', index + 1); // date, time    
-                    destinationString = destinationString.Insert(index + 3, date); 
+                    destinationString = destinationString.Insert(index + 3, date);
 
                     index = destinationString.IndexOf('\x0A', index + 1); // measured values with result
                     destinationString = destinationString.Insert(index + 6, T);
@@ -147,8 +208,8 @@ namespace OldNewConverter
                     destinationString = destinationString.Insert(index + 26, " 0"); // QR: " 0"
 
                     index = destinationString.IndexOf('\x0A', index + 1); // angle limits
-                    destinationString = destinationString.Insert(index + 3, Amin); 
-                    destinationString = destinationString.Insert(index + 14, Amax); 
+                    destinationString = destinationString.Insert(index + 3, Amin);
+                    destinationString = destinationString.Insert(index + 14, Amax);
 
                     index = destinationString.IndexOf('\x0A', index + 1); // torque limits
                     destinationString = destinationString.Insert(index + 6, Tmin);
@@ -179,14 +240,11 @@ namespace OldNewConverter
                     originFile.Close();
                     destinationFile.Close();
 
-                    //System.IO.File.Delete(originFilePath); UNCOMMENT IN REAL SCENARIO
+                    System.IO.File.Delete(originFilePath); //UNCOMMENT IN REAL SCENARIO
                 }
                 i++; if (i >= maxStationNumber) break;
-            }       
+            }
         }
-
-
-        private void readAndWriteFiles ()
 
 
         private string getData(string source, string name, int fromIndex, SearchType t)
@@ -317,6 +375,37 @@ namespace OldNewConverter
                 errorMessage = String.Concat(errorMessage, theException.Source);
                 MessageBox.Show(errorMessage, "Error");
             }
+        }
+
+        private void SetupDataGridView()
+        {
+            //stationsDataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            stationsDataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill; //Tar
+            stationsDataGridView.ColumnCount = 5;
+
+            //stationsDataGridView.ColumnHeadersDefaultCellStyle.BackColor = Color.Red;
+            //stationsDataGridView.ColumnHeadersDefaultCellStyle.ForeColor = Color.Red;
+            stationsDataGridView.ColumnHeadersDefaultCellStyle.Font = new Font(stationsDataGridView.Font, FontStyle.Bold);
+
+            //stationsDataGridView.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.DisplayedCellsExceptHeaders;
+            stationsDataGridView.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
+            stationsDataGridView.CellBorderStyle = DataGridViewCellBorderStyle.Single;
+
+            stationsDataGridView.GridColor = Color.Black;
+            stationsDataGridView.RowHeadersVisible = false;
+
+            stationsDataGridView.Columns[0].Name = "Station Name";
+            stationsDataGridView.Columns[1].Name = "IP Address";
+            stationsDataGridView.Columns[2].Name = "Origin last activity";
+            stationsDataGridView.Columns[3].Name = "Destination last activity";
+            stationsDataGridView.Columns[4].Name = "Status";
+
+            stationsDataGridView.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            stationsDataGridView.MultiSelect = false;
+
+            stationsDataGridView.AllowUserToAddRows = false;
+            //stationsDataGridView.Dock = DockStyle.Fill;  
+
         }
 
         private void Form1_Load(object sender, EventArgs e)

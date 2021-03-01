@@ -34,6 +34,8 @@
             this.DestinationLabel = new System.Windows.Forms.Label();
             this.originTextBox = new System.Windows.Forms.TextBox();
             this.destinationTextBox = new System.Windows.Forms.TextBox();
+            this.stationsDataGridView = new System.Windows.Forms.DataGridView();
+            ((System.ComponentModel.ISupportInitialize)(this.stationsDataGridView)).BeginInit();
             this.SuspendLayout();
             // 
             // startStopButton
@@ -89,9 +91,18 @@
             this.destinationTextBox.TabIndex = 5;
             this.destinationTextBox.Text = "C:\\FTP Server Results\\Destination";
             // 
+            // stationsDataGridView
+            // 
+            this.stationsDataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.stationsDataGridView.Location = new System.Drawing.Point(22, 129);
+            this.stationsDataGridView.Name = "stationsDataGridView";
+            this.stationsDataGridView.Size = new System.Drawing.Size(798, 159);
+            this.stationsDataGridView.TabIndex = 6;
+            // 
             // Form1
             // 
-            this.ClientSize = new System.Drawing.Size(477, 140);
+            this.ClientSize = new System.Drawing.Size(843, 310);
+            this.Controls.Add(this.stationsDataGridView);
             this.Controls.Add(this.destinationTextBox);
             this.Controls.Add(this.originTextBox);
             this.Controls.Add(this.DestinationLabel);
@@ -101,6 +112,7 @@
             this.Name = "Form1";
             this.Text = "Old New Converter";
             this.Load += new System.EventHandler(this.Form1_Load);
+            ((System.ComponentModel.ISupportInitialize)(this.stationsDataGridView)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -114,6 +126,7 @@
         private System.Windows.Forms.Label DestinationLabel;
         private System.Windows.Forms.TextBox originTextBox;
         private System.Windows.Forms.TextBox destinationTextBox;
+        private System.Windows.Forms.DataGridView stationsDataGridView;
     }
 }
 
