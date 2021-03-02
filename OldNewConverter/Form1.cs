@@ -22,6 +22,13 @@ namespace OldNewConverter
             SetupDataGridView();
         }
 
+    
+        public enum SearchType
+        {
+            FirstOcurrence = 0,
+            LastOcurrence = 1
+        }
+
         struct Station
         {
             public string name;
@@ -29,8 +36,8 @@ namespace OldNewConverter
             public string originPath;
             public string destinationPath;
             public string lastActivityDate;
-      
-            public Station (string name, string ip, string originPath, string destinationPath, string lastActivityDate)
+
+            public Station(string name, string ip, string originPath, string destinationPath, string lastActivityDate)
             {
                 this.name = name;
                 this.ip = ip;
@@ -38,12 +45,6 @@ namespace OldNewConverter
                 this.destinationPath = destinationPath;
                 this.lastActivityDate = lastActivityDate;
             }
-        }
-
-        public enum SearchType
-        {
-            FirstOcurrence = 0,
-            LastOcurrence = 1
         }
 
         static int maxStationNumber = 5;
@@ -270,9 +271,8 @@ namespace OldNewConverter
                 errorMessage = String.Concat(errorMessage, theException.Message);
                 errorMessage = String.Concat(errorMessage, "Line: ");
                 errorMessage = String.Concat(errorMessage, theException.Source);
-                MessageBox.Show(errorMessage, "Error");
-                System.Environment.Exit(1);
-                return;
+                //MessageBox.Show(errorMessage, "Error");
+                System.Windows.Forms.Application.Exit();
             }          
         }
 
@@ -447,11 +447,6 @@ namespace OldNewConverter
 
             stationsDataGridView.AllowUserToAddRows = false;
             //stationsDataGridView.Dock = DockStyle.Fill;  
-
-        }
-
-        private void Form1_Load(object sender, EventArgs e)
-        {
 
         }
     }
