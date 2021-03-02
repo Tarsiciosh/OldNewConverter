@@ -49,52 +49,35 @@ namespace OldNewConverter
         static int maxStationNumber = 5;
         Station[] stations = new Station[maxStationNumber];
 
-        int j = 0; // for testing
-
         private void startStopButton_Click(object sender, EventArgs e)
         {
             System.Timers.Timer myTimer = new System.Timers.Timer();
+
             if (startStopButton.Text == "Start")
-            {
+            { 
+                // send the "start" message to the running service 
+            
+                getStationInfo(); // (SERVICE START)
 
-                //------> when the service starts o reinitiates it reads the file and fill the stations array!!!
-                //stations = readExcelFile(); // read the configuration file
-                stations[0].name = "OP prueba 1";
-                stations[0].ip = "ip prueba 1";
-                stations[0].originPath = originTextBox.Text; // "C:\\FTP Server Results\\Origin";
-                stations[0].destinationPath = destinationTextBox.Text;  //"C:\\FTP Server Results\\Destination";
-
-                stations[1].name = "OP prueba 2";
-                stations[1].ip = "ip prueba 2";
-                stations[1].originPath = "C:\\FTP Server Results\\Origin_2";
-                stations[1].destinationPath = "C:\\FTP Server Results\\Destination_2";
-
-                
-                // (onother function) when there is new data from the service update the grid
-                foreach (Station station in stations)
+                foreach (Station station in stations) //creates the grid rows  (SERVICE START)
                 {
-                    string[] row = {station.name,station.ip};
+                    string[] row = {station.name, station.ip};
                     stationsDataGridView.Rows.Add(row);
                 }
 
-                // create the timer (this must be in the service initialization)
-                // set up a timer that triggers every second
-               
-                myTimer.Interval = 1000; // 1 second
+                // setup the timer (SERVICE START)
+                myTimer.Interval = 5000; // 1 second
                 myTimer.Elapsed += new ElapsedEventHandler(this.OnTimer);
                 myTimer.Start();
 
-                // activate the windows service
-                // create each worker for each station
                 // if all other steps where ok display "Started"
-
                 statusLabel.Text = "Started";
                 statusLabel.ForeColor = Color.Green;
                 startStopButton.Text = "Stop";
             }
             else
             {
-                // stop and delete all workers
+                // send "stop" message to the running service 
                 // erase the content of the data grid view
                 myTimer.Stop();
 
@@ -103,15 +86,43 @@ namespace OldNewConverter
                 {
                     stationsDataGridView.Rows.RemoveAt(0);
                 }
-                // if all other steps where ok display "stopped" 
+
+                // if all other steps where ok display "Stopped" 
                 statusLabel.Text = "Stopped";
                 statusLabel.ForeColor = Color.Red;
                 startStopButton.Text = "Start";
             }
         }
 
+        private void getStationInfo()
+        {
+            System.IO.StreamReader configFile;
+            string configString;
+       
+            string [] lines;
+            string [] fields;
+         
+            configFile = System.IO.File.OpenText("C:\\OldNewGateway\\config\\stations.csv");
+            configString = configFile.ReadToEnd();
+            lines = configString.Split(new char[]{'\x0D','\x0A'}, StringSplitOptions.RemoveEmptyEntries);
 
-        public void OnTimer(object sender, ElapsedEventArgs args)
+            int i = -1;
+            foreach (string line in lines)
+            {
+                if (i == -1) i = 0; else // skip the first line
+                {
+                    fields = line.Split(';');
+                    stations[i].name = fields[0];
+                    stations[i].ip = fields[1];
+                    stations[i].originPath = fields[2];
+                    stations[i].destinationPath = fields[3];
+                    i++;
+                }
+            }
+            configFile.Close(); 
+        }
+
+        private void OnTimer(object sender, ElapsedEventArgs args)
         {
             readAndWriteStationData();
             updateGridData();
@@ -119,136 +130,150 @@ namespace OldNewConverter
   
         private void readAndWriteStationData()
         {
-            System.IO.StreamReader originFile;
-            System.IO.StreamReader modelFile;
-            System.IO.StreamWriter destinationFile;
-
-            int i = 0;
-            while (!String.IsNullOrEmpty(stations[i].name))
+            try
             {
-                IEnumerable<string> filePaths = System.IO.Directory.EnumerateFiles(stations[i].originPath, "*.json", System.IO.SearchOption.AllDirectories);
-                foreach (string originFilePath in filePaths) //all the .json files in that folder and subfolders
+                System.IO.StreamReader originFile;
+                System.IO.StreamReader modelFile;
+                System.IO.StreamWriter destinationFile;
+
+                int i = 0;
+                while (!String.IsNullOrEmpty(stations[i].name))
                 {
-                    int index;
-                    string result, prg, cycle, date, id, qc, row, column, step, sb, Tmin, T, Tmax, Amin, A, Amax;
-                    string originString, destinationString;
-                    string destinationFilePath;
+                    IEnumerable<string> filePaths = System.IO.Directory.EnumerateFiles(stations[i].originPath, "*.json", System.IO.SearchOption.AllDirectories);
+                    foreach (string originFilePath in filePaths) //all the .json files in that folder and subfolders
+                    {
+                        int index;
+                        string result, prg, cycle, date, id, qc, row, column, step, Tmin, T, Tmax, Amin, A, Amax;
+                        string originString, destinationString;
+                        string destinationFilePath;
 
-                    // READ ORIGIN FILE
-                    originFile = System.IO.File.OpenText(originFilePath);
-                    originString = originFile.ReadToEnd();
+                        // READ ORIGIN FILE
+                        originFile = System.IO.File.OpenText(originFilePath);
+                        originString = originFile.ReadToEnd();
 
-                    result = getData(originString, "result", 0, SearchType.FirstOcurrence);
+                        result = getData(originString, "result", 0, SearchType.FirstOcurrence);
 
-                    prg = getData(originString, "prg nr", 0, SearchType.FirstOcurrence);
-                    prg = expandAndShift(prg, 2);
+                        prg = getData(originString, "prg nr", 0, SearchType.FirstOcurrence);
+                        prg = expandAndShift(prg, 2);
 
-                    cycle = getData(originString, "cycle", 0, SearchType.FirstOcurrence);
-                    cycle = expandAndShift(cycle, 7);
+                        cycle = getData(originString, "cycle", 0, SearchType.FirstOcurrence);
+                        cycle = expandAndShift(cycle, 7);
 
-                    date = getData(originString, "date", 0, SearchType.FirstOcurrence);
-                    date = date.Insert(11, "H ");
+                        date = getData(originString, "date", 0, SearchType.FirstOcurrence);
+                        date = date.Insert(11, "H ");
 
-                    id = getData(originString, "id code", 0, SearchType.FirstOcurrence);
-                    id = id + "_xxx";
+                        id = getData(originString, "id code", 0, SearchType.FirstOcurrence);
+                        id = id + "_xxx";
 
-                    qc = getData(originString, "quality code", 0, SearchType.FirstOcurrence);
-                    qc = expandAndShift(qc, 3);
+                        qc = getData(originString, "quality code", 0, SearchType.FirstOcurrence);
+                        qc = expandAndShift(qc, 3);
 
-                    // ... last result
+                        // ... last result
 
-                    row = getData(originString, "row", 0, SearchType.LastOcurrence);
-                    row = expandAndShift(row, 2);
-                    column = getData(originString, "column", 0, SearchType.LastOcurrence);
-                    step = row.Insert(row.Length, column);
+                        row = getData(originString, "row", 0, SearchType.LastOcurrence);
+                        row = expandAndShift(row, 2);
+                        column = getData(originString, "column", 0, SearchType.LastOcurrence);
+                        step = row.Insert(row.Length, column);
 
-                    T = getData(originString, "torque", 0, SearchType.LastOcurrence);
-                    T = cutAndShift(T, 5);
+                        T = getData(originString, "torque", 0, SearchType.LastOcurrence);
+                        T = cutAndShift(T, 5);
 
-                    A = getData(originString, "angle", 0, SearchType.LastOcurrence);
-                    A = cutAndShift(A, 8);
+                        A = getData(originString, "angle", 0, SearchType.LastOcurrence);
+                        A = cutAndShift(A, 8);
 
-                    index = originString.LastIndexOf("MF TorqueMin");
-                    Tmin = getData(originString, "nom", index, SearchType.FirstOcurrence);
-                    Tmin = cutAndShift(Tmin, 5);
+                        index = originString.LastIndexOf("MF TorqueMin");
+                        Tmin = getData(originString, "nom", index, SearchType.FirstOcurrence);
+                        Tmin = cutAndShift(Tmin, 5);
 
-                    index = originString.LastIndexOf("MFs TorqueMax");
-                    Tmax = getData(originString, "nom", index, SearchType.FirstOcurrence);
-                    Tmax = cutAndShift(Tmax, 5);
+                        index = originString.LastIndexOf("MFs TorqueMax");
+                        Tmax = getData(originString, "nom", index, SearchType.FirstOcurrence);
+                        Tmax = cutAndShift(Tmax, 5);
 
-                    index = originString.LastIndexOf("MF AngleMin");
-                    Amin = getData(originString, "nom", index, SearchType.FirstOcurrence);
-                    Amin = expandAndShift(Amin, 8);
+                        index = originString.LastIndexOf("MF AngleMin");
+                        Amin = getData(originString, "nom", index, SearchType.FirstOcurrence);
+                        Amin = expandAndShift(Amin, 8);
 
-                    index = originString.LastIndexOf("MFs AngleMax");
-                    Amax = getData(originString, "nom", index, SearchType.FirstOcurrence);
-                    Amax = expandAndShift(Amax, 8);
+                        index = originString.LastIndexOf("MFs AngleMax");
+                        Amax = getData(originString, "nom", index, SearchType.FirstOcurrence);
+                        Amax = expandAndShift(Amax, 8);
 
-                    // READ MODEL FILE
-                    modelFile = System.IO.File.OpenText("C:\\OldNewGateway\\file models\\model.txt");
-                    destinationString = modelFile.ReadToEnd(); // read as string
+                        // READ MODEL FILE
+                        modelFile = System.IO.File.OpenText("C:\\OldNewGateway\\file models\\model.txt");
+                        destinationString = modelFile.ReadToEnd(); // read as string
 
-                    //ID code souce and ID code
-                    destinationString = destinationString.Insert(12 - 1, id);
+                        //ID code souce and ID code
+                        destinationString = destinationString.Insert(12 - 1, id);
 
-                    index = destinationString.IndexOf('\x0A');
+                        index = destinationString.IndexOf('\x0A');
 
-                    index = destinationString.IndexOf('\x0A', index + 1); // date, time    
-                    destinationString = destinationString.Insert(index + 3, date);
+                        index = destinationString.IndexOf('\x0A', index + 1); // date, time    
+                        destinationString = destinationString.Insert(index + 3, date);
 
-                    index = destinationString.IndexOf('\x0A', index + 1); // measured values with result
-                    destinationString = destinationString.Insert(index + 6, T);
-                    destinationString = destinationString.Insert(index + 14, A);
-                    destinationString = destinationString.Insert(index + 28, "     "); // G gradient
-                    destinationString = destinationString.Insert(index + 34, result);
+                        index = destinationString.IndexOf('\x0A', index + 1); // measured values with result
+                        destinationString = destinationString.Insert(index + 6, T);
+                        destinationString = destinationString.Insert(index + 14, A);
+                        destinationString = destinationString.Insert(index + 28, "     "); // G gradient
+                        destinationString = destinationString.Insert(index + 34, result);
 
-                    index = destinationString.IndexOf('\x0A', index + 1); // redundancy values (optional)
-                    destinationString = destinationString.Insert(index + 6, "     "); // MR: 5 spaces 
-                    destinationString = destinationString.Insert(index + 14, "        "); // WR: 8 spaces
-                    destinationString = destinationString.Insert(index + 26, " 0"); // QR: " 0"
+                        index = destinationString.IndexOf('\x0A', index + 1); // redundancy values (optional)
+                        destinationString = destinationString.Insert(index + 6, "     "); // MR: 5 spaces 
+                        destinationString = destinationString.Insert(index + 14, "        "); // WR: 8 spaces
+                        destinationString = destinationString.Insert(index + 26, " 0"); // QR: " 0"
 
-                    index = destinationString.IndexOf('\x0A', index + 1); // angle limits
-                    destinationString = destinationString.Insert(index + 3, Amin);
-                    destinationString = destinationString.Insert(index + 14, Amax);
+                        index = destinationString.IndexOf('\x0A', index + 1); // angle limits
+                        destinationString = destinationString.Insert(index + 3, Amin);
+                        destinationString = destinationString.Insert(index + 14, Amax);
 
-                    index = destinationString.IndexOf('\x0A', index + 1); // torque limits
-                    destinationString = destinationString.Insert(index + 6, Tmin);
-                    destinationString = destinationString.Insert(index + 17, Tmax);
+                        index = destinationString.IndexOf('\x0A', index + 1); // torque limits
+                        destinationString = destinationString.Insert(index + 6, Tmin);
+                        destinationString = destinationString.Insert(index + 17, Tmax);
 
-                    index = destinationString.IndexOf('\x0A', index + 1); // gradient limits
-                    destinationString = destinationString.Insert(index + 5, "      ");
-                    destinationString = destinationString.Insert(index + 17, "     ");
+                        index = destinationString.IndexOf('\x0A', index + 1); // gradient limits
+                        destinationString = destinationString.Insert(index + 5, "      ");
+                        destinationString = destinationString.Insert(index + 17, "     ");
 
-                    index = destinationString.IndexOf('\x0A', index + 1); // step, quality code, stopped by
-                    destinationString = destinationString.Insert(index + 3, step);
-                    destinationString = destinationString.Insert(index + 11, qc);
-                    destinationString = destinationString.Insert(index + 18, " 3");
+                        index = destinationString.IndexOf('\x0A', index + 1); // step, quality code, stopped by
+                        destinationString = destinationString.Insert(index + 3, step);
+                        destinationString = destinationString.Insert(index + 11, qc);
+                        destinationString = destinationString.Insert(index + 18, " 3");
 
-                    index = destinationString.IndexOf('\x0A', index + 1); // consecutive no. and program no.
-                    destinationString = destinationString.Insert(index + 3, cycle);
-                    destinationString = destinationString.Insert(index + 13, prg);
+                        index = destinationString.IndexOf('\x0A', index + 1); // consecutive no. and program no.
+                        destinationString = destinationString.Insert(index + 3, cycle);
+                        destinationString = destinationString.Insert(index + 13, prg);
 
-                    index = destinationString.IndexOf('\x0A', index + 1); // hardware ID and channel no.
+                        index = destinationString.IndexOf('\x0A', index + 1); // hardware ID and channel no.
 
-                    destinationFilePath = System.IO.Path.Combine(stations[i].destinationPath, "test-result.txt");
-                    destinationFile = System.IO.File.CreateText(destinationFilePath);
+                        destinationFilePath = System.IO.Path.Combine(stations[i].destinationPath, "test-result.txt");
+                        destinationFile = System.IO.File.CreateText(destinationFilePath);
 
-                    destinationFile.Write(destinationString.ToCharArray());
+                        destinationFile.Write(destinationString.ToCharArray());
 
-                    destinationFile.Flush();
+                        destinationFile.Flush();
 
-                    originFile.Close();
-                    destinationFile.Close();
+                        originFile.Close();
+                        destinationFile.Close();
 
-                    System.IO.File.Delete(originFilePath); //UNCOMMENT IN REAL SCENARIO
+                        System.IO.File.Delete(originFilePath);
 
-                    DateTime localDate = DateTime.Now;
-                    var culture = new CultureInfo("en-GB");
-                    stations[i].lastActivityDate = localDate.ToString(culture);
+                        DateTime localDate = DateTime.Now;
+                        var culture = new CultureInfo("en-GB");
+                        stations[i].lastActivityDate = localDate.ToString(culture);
 
-                 }
-                i++; if (i >= maxStationNumber) break;
+                    }
+                    i++; if (i >= maxStationNumber) break;
+                }
             }
+            catch (Exception theException) //catch and report the error if there is any
+            {
+                string errorMessage;
+                errorMessage = "Error:";
+                errorMessage = String.Concat(errorMessage, theException.Message);
+                errorMessage = String.Concat(errorMessage, "Line: ");
+                errorMessage = String.Concat(errorMessage, theException.Source);
+                MessageBox.Show(errorMessage, "Error");
+                System.Environment.Exit(1);
+                return;
+            }          
         }
 
         private void updateGridData()
@@ -279,7 +304,7 @@ namespace OldNewConverter
 
             index = index + name.Length + 4; // two quotation marks, one colon and a space
 
-            if (charArray[index] == '"') // string case!
+            if (charArray[index] == '"') // STRING CASE!
             {
                 i = 1; // offset of the quotation mark
                 while (charArray[i + index] != '"')
@@ -288,7 +313,7 @@ namespace OldNewConverter
                     i++;
                 }
             }
-            else // number case!
+            else // NUMBER CASE!
             {
                 i = 0; // no offset
                 while (charArray[i + index] != ',' && charArray[i + index] != ' ')
@@ -304,7 +329,7 @@ namespace OldNewConverter
         {
             try
             {
-                if (n > s.Length) return null;
+                //if (n > s.Length) return null;
                 int indexOfPoint = s.IndexOf(".");
                 char[] charArray = s.ToCharArray();
                 for (int i = 0; i < (n - indexOfPoint - 3); i++) // round in 2 decimals
@@ -330,7 +355,7 @@ namespace OldNewConverter
         {
             try
             {
-                if (n < s.Length) return null;
+                //if (n < s.Length) return null;
                 char[] charArray = s.ToCharArray();
                 int len = s.Length;
                 for (int i = 0; i < (n - len) ; i++)
@@ -373,8 +398,8 @@ namespace OldNewConverter
 
                 oSheet.Cells[1, 2] = "Station Name";
 
-                originTextBox.Text = oSheet.Cells[2, 3].Value2; // then change the 2 with a variable to iterate al the file
-                destinationTextBox.Text = oSheet.Cells[2, 4].Value2;
+                //originTextBox.Text = oSheet.Cells[2, 3].Value2; // then change the 2 with a variable to iterate al the file
+                //destinationTextBox.Text = oSheet.Cells[2, 4].Value2;
 
                 oXL.Visible = false;
                 oXL.UserControl = false;
@@ -405,8 +430,9 @@ namespace OldNewConverter
             stationsDataGridView.ColumnHeadersDefaultCellStyle.Font = new Font(stationsDataGridView.Font, FontStyle.Bold);
 
             //stationsDataGridView.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.DisplayedCellsExceptHeaders;
-            stationsDataGridView.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
-            stationsDataGridView.CellBorderStyle = DataGridViewCellBorderStyle.Single;
+            
+            //stationsDataGridView.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
+            //stationsDataGridView.CellBorderStyle = DataGridViewCellBorderStyle.Single;
 
             stationsDataGridView.GridColor = Color.Black;
             stationsDataGridView.RowHeadersVisible = false;
@@ -440,7 +466,7 @@ namespace OldNewConverter
 
 /*
  
-
+     //System.Diagnostics.Debug.WriteLine($"readed lines: {lines.Length}");
            
                 DataSet dataSet = new DataSet("Suppliers");
                 dataSet.Tables[0].Rows[0][0] = "Hello";

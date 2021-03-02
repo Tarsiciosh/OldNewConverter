@@ -30,10 +30,6 @@
         {
             this.startStopButton = new System.Windows.Forms.Button();
             this.statusLabel = new System.Windows.Forms.Label();
-            this.originLabel = new System.Windows.Forms.Label();
-            this.DestinationLabel = new System.Windows.Forms.Label();
-            this.originTextBox = new System.Windows.Forms.TextBox();
-            this.destinationTextBox = new System.Windows.Forms.TextBox();
             this.stationsDataGridView = new System.Windows.Forms.DataGridView();
             this.label1 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.stationsDataGridView)).BeginInit();
@@ -59,46 +55,12 @@
             this.statusLabel.TabIndex = 1;
             this.statusLabel.Text = "Stopped";
             // 
-            // originLabel
-            // 
-            this.originLabel.AutoSize = true;
-            this.originLabel.Location = new System.Drawing.Point(57, 58);
-            this.originLabel.Name = "originLabel";
-            this.originLabel.Size = new System.Drawing.Size(81, 13);
-            this.originLabel.TabIndex = 2;
-            this.originLabel.Text = "Origin File Path:";
-            // 
-            // DestinationLabel
-            // 
-            this.DestinationLabel.AutoSize = true;
-            this.DestinationLabel.Location = new System.Drawing.Point(31, 92);
-            this.DestinationLabel.Name = "DestinationLabel";
-            this.DestinationLabel.Size = new System.Drawing.Size(107, 13);
-            this.DestinationLabel.TabIndex = 3;
-            this.DestinationLabel.Text = "Destination File Path:";
-            // 
-            // originTextBox
-            // 
-            this.originTextBox.Location = new System.Drawing.Point(144, 55);
-            this.originTextBox.Name = "originTextBox";
-            this.originTextBox.Size = new System.Drawing.Size(300, 20);
-            this.originTextBox.TabIndex = 4;
-            this.originTextBox.Text = "C:\\FTP Server Results\\Origin";
-            // 
-            // destinationTextBox
-            // 
-            this.destinationTextBox.Location = new System.Drawing.Point(144, 89);
-            this.destinationTextBox.Name = "destinationTextBox";
-            this.destinationTextBox.Size = new System.Drawing.Size(300, 20);
-            this.destinationTextBox.TabIndex = 5;
-            this.destinationTextBox.Text = "C:\\FTP Server Results\\Destination";
-            // 
             // stationsDataGridView
             // 
             this.stationsDataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.stationsDataGridView.Location = new System.Drawing.Point(22, 129);
+            this.stationsDataGridView.Location = new System.Drawing.Point(22, 51);
             this.stationsDataGridView.Name = "stationsDataGridView";
-            this.stationsDataGridView.Size = new System.Drawing.Size(798, 159);
+            this.stationsDataGridView.Size = new System.Drawing.Size(798, 198);
             this.stationsDataGridView.TabIndex = 6;
             // 
             // label1
@@ -112,15 +74,13 @@
             // 
             // Form1
             // 
-            this.ClientSize = new System.Drawing.Size(843, 310);
+            this.ClientSize = new System.Drawing.Size(844, 261);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.stationsDataGridView);
-            this.Controls.Add(this.destinationTextBox);
-            this.Controls.Add(this.originTextBox);
-            this.Controls.Add(this.DestinationLabel);
-            this.Controls.Add(this.originLabel);
             this.Controls.Add(this.statusLabel);
             this.Controls.Add(this.startStopButton);
+            this.MaximumSize = new System.Drawing.Size(860, 300);
+            this.MinimumSize = new System.Drawing.Size(860, 300);
             this.Name = "Form1";
             this.Text = "Old New Converter";
             this.Load += new System.EventHandler(this.Form1_Load);
@@ -134,10 +94,6 @@
 
         private System.Windows.Forms.Button startStopButton;
         private System.Windows.Forms.Label statusLabel;
-        private System.Windows.Forms.Label originLabel;
-        private System.Windows.Forms.Label DestinationLabel;
-        private System.Windows.Forms.TextBox originTextBox;
-        private System.Windows.Forms.TextBox destinationTextBox;
         private System.Windows.Forms.DataGridView stationsDataGridView;
         private System.Windows.Forms.Label label1;
     }
