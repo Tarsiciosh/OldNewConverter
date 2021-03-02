@@ -35,12 +35,13 @@
             this.originTextBox = new System.Windows.Forms.TextBox();
             this.destinationTextBox = new System.Windows.Forms.TextBox();
             this.stationsDataGridView = new System.Windows.Forms.DataGridView();
+            this.label1 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.stationsDataGridView)).BeginInit();
             this.SuspendLayout();
             // 
             // startStopButton
             // 
-            this.startStopButton.Location = new System.Drawing.Point(12, 12);
+            this.startStopButton.Location = new System.Drawing.Point(110, 12);
             this.startStopButton.Name = "startStopButton";
             this.startStopButton.Size = new System.Drawing.Size(71, 24);
             this.startStopButton.TabIndex = 0;
@@ -51,11 +52,12 @@
             // statusLabel
             // 
             this.statusLabel.AutoSize = true;
-            this.statusLabel.Location = new System.Drawing.Point(93, 18);
+            this.statusLabel.ForeColor = System.Drawing.Color.Red;
+            this.statusLabel.Location = new System.Drawing.Point(57, 18);
             this.statusLabel.Name = "statusLabel";
-            this.statusLabel.Size = new System.Drawing.Size(45, 13);
+            this.statusLabel.Size = new System.Drawing.Size(47, 13);
             this.statusLabel.TabIndex = 1;
-            this.statusLabel.Text = "stopped";
+            this.statusLabel.Text = "Stopped";
             // 
             // originLabel
             // 
@@ -99,9 +101,19 @@
             this.stationsDataGridView.Size = new System.Drawing.Size(798, 159);
             this.stationsDataGridView.TabIndex = 6;
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(19, 18);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(40, 13);
+            this.label1.TabIndex = 7;
+            this.label1.Text = "Status:";
+            // 
             // Form1
             // 
             this.ClientSize = new System.Drawing.Size(843, 310);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.stationsDataGridView);
             this.Controls.Add(this.destinationTextBox);
             this.Controls.Add(this.originTextBox);
@@ -127,6 +139,7 @@
         private System.Windows.Forms.TextBox originTextBox;
         private System.Windows.Forms.TextBox destinationTextBox;
         private System.Windows.Forms.DataGridView stationsDataGridView;
+        private System.Windows.Forms.Label label1;
     }
 }
 

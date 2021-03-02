@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Forms;
 using Excel = Microsoft.Office.Interop.Excel;
+using System.Globalization;
 
 
 namespace OldNewConverter
@@ -27,13 +28,15 @@ namespace OldNewConverter
             public string ip;
             public string originPath;
             public string destinationPath;
+            public string lastActivityDate;
       
-            public Station (string name, string ip, string originPath, string destinationPath)
+            public Station (string name, string ip, string originPath, string destinationPath, string lastActivityDate)
             {
                 this.name = name;
                 this.ip = ip;
                 this.originPath = originPath;
                 this.destinationPath = destinationPath;
+                this.lastActivityDate = lastActivityDate;
             }
         }
 
@@ -46,23 +49,37 @@ namespace OldNewConverter
         static int maxStationNumber = 5;
         Station[] stations = new Station[maxStationNumber];
 
+        int j = 0; // for testing
+
         private void startStopButton_Click(object sender, EventArgs e)
         {
+            System.Timers.Timer myTimer = new System.Timers.Timer();
             if (startStopButton.Text == "Start")
             {
 
-                // starts the service... 
+                //------> when the service starts o reinitiates it reads the file and fill the stations array!!!
+                //stations = readExcelFile(); // read the configuration file
+                stations[0].name = "OP prueba 1";
+                stations[0].ip = "ip prueba 1";
+                stations[0].originPath = originTextBox.Text; // "C:\\FTP Server Results\\Origin";
+                stations[0].destinationPath = destinationTextBox.Text;  //"C:\\FTP Server Results\\Destination";
 
+                stations[1].name = "OP prueba 2";
+                stations[1].ip = "ip prueba 2";
+                stations[1].originPath = "C:\\FTP Server Results\\Origin_2";
+                stations[1].destinationPath = "C:\\FTP Server Results\\Destination_2";
+
+                
                 // (onother function) when there is new data from the service update the grid
                 foreach (Station station in stations)
                 {
-                    string[] row = { station.name, station.ip, station.originPath, station.destinationPath};
+                    string[] row = {station.name,station.ip};
                     stationsDataGridView.Rows.Add(row);
                 }
 
                 // create the timer (this must be in the service initialization)
                 // set up a timer that triggers every second
-                System.Timers.Timer myTimer = new System.Timers.Timer();
+               
                 myTimer.Interval = 1000; // 1 second
                 myTimer.Elapsed += new ElapsedEventHandler(this.OnTimer);
                 myTimer.Start();
@@ -79,6 +96,8 @@ namespace OldNewConverter
             {
                 // stop and delete all workers
                 // erase the content of the data grid view
+                myTimer.Stop();
+
                 int count = stationsDataGridView.RowCount;
                 for (int i = 0; i < count; i++)
                 {
@@ -94,34 +113,15 @@ namespace OldNewConverter
 
         public void OnTimer(object sender, ElapsedEventArgs args)
         {
-            readAndWriteStationData(stations);
+            readAndWriteStationData();
+            updateGridData();
         }
-
-
-        private void readAndWriteStationData(Station[] stations)
+  
+        private void readAndWriteStationData()
         {
             System.IO.StreamReader originFile;
             System.IO.StreamReader modelFile;
             System.IO.StreamWriter destinationFile;
-
-            
-            
-            
-            //------> when the service starts o reinitiates it reads the file and fill the stations array!!!
-            //stations = readExcelFile(); // read the configuration file
-            stations[0].name = "Prueba";
-            stations[0].ip = "ip prueba";
-            stations[0].originPath = originTextBox.Text; // "C:\\FTP Server Results\\Origin";
-            stations[0].destinationPath = destinationTextBox.Text;  //"C:\\FTP Server Results\\Destination";
-
-            stations[1].name = "Prueba 2";
-            stations[1].ip = "ip prueba 2";
-            stations[1].originPath = originTextBox.Text; // "C:\\FTP Server Results\\Origin";
-            stations[1].destinationPath = destinationTextBox.Text;  //"C:\\FTP Server Results\\Destination";
-
-
-
-
 
             int i = 0;
             while (!String.IsNullOrEmpty(stations[i].name))
@@ -241,11 +241,28 @@ namespace OldNewConverter
                     destinationFile.Close();
 
                     System.IO.File.Delete(originFilePath); //UNCOMMENT IN REAL SCENARIO
-                }
+
+                    DateTime localDate = DateTime.Now;
+                    var culture = new CultureInfo("en-GB");
+                    stations[i].lastActivityDate = localDate.ToString(culture);
+
+                 }
                 i++; if (i >= maxStationNumber) break;
             }
         }
 
+        private void updateGridData()
+        {
+            if (stationsDataGridView.RowCount != 0)
+            {
+                for (int i = 0; i < stations.Length; i++)
+                {
+                    stationsDataGridView.Rows[i].Cells[0].Value = stations[i].name;
+                    stationsDataGridView.Rows[i].Cells[1].Value = stations[i].ip;
+                    stationsDataGridView.Rows[i].Cells[2].Value = stations[i].lastActivityDate;
+                }
+            }
+        }
 
         private string getData(string source, string name, int fromIndex, SearchType t)
         {
@@ -381,7 +398,7 @@ namespace OldNewConverter
         {
             //stationsDataGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             stationsDataGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill; //Tar
-            stationsDataGridView.ColumnCount = 5;
+            stationsDataGridView.ColumnCount = 4;
 
             //stationsDataGridView.ColumnHeadersDefaultCellStyle.BackColor = Color.Red;
             //stationsDataGridView.ColumnHeadersDefaultCellStyle.ForeColor = Color.Red;
@@ -396,9 +413,8 @@ namespace OldNewConverter
 
             stationsDataGridView.Columns[0].Name = "Station Name";
             stationsDataGridView.Columns[1].Name = "IP Address";
-            stationsDataGridView.Columns[2].Name = "Origin last activity";
-            stationsDataGridView.Columns[3].Name = "Destination last activity";
-            stationsDataGridView.Columns[4].Name = "Status";
+            stationsDataGridView.Columns[2].Name = "Last Activity";
+            stationsDataGridView.Columns[3].Name = "Status";
 
             stationsDataGridView.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
             stationsDataGridView.MultiSelect = false;
@@ -424,28 +440,35 @@ namespace OldNewConverter
 
 /*
  
-     // Add data to the model buffer
-                    // modelBuffer[1] = 0x20;
 
-                    //MessageBox.Show($"len: {modelFileString.Length.ToString()}");
+           
+                DataSet dataSet = new DataSet("Suppliers");
+                dataSet.Tables[0].Rows[0][0] = "Hello";
+                stationsDataGridView.DataSource = dataSet;
+                stationsDataGridView.DataMember = "hola";
+                
+// Add data to the model buffer
+// modelBuffer[1] = 0x20;
 
-                    //byte stx = 0x03;    
-                    //destinationBuffer[0] = Convert.ToChar(stx);
+//MessageBox.Show($"len: {modelFileString.Length.ToString()}");
 
-                    //destinationBuffer[0] = '\x02'; // write direct byte type values
+//byte stx = 0x03;    
+//destinationBuffer[0] = Convert.ToChar(stx);
 
-                    //modelBuffer[2] = '\x03';
-                    //Add data to the model string - all data
-                    //modelString = modelString.Insert(20, T);
-                    //modelString = modelString.Insert(34, A);
-                    //modelString = modelString.Insert(43, t); 
-                    //modelString = modelString.Insert(12-1, id);
-                    //MessageBox.Show(modelString);
+//destinationBuffer[0] = '\x02'; // write direct byte type values
 
-                    // Create file and copy the information from the buffer
+//modelBuffer[2] = '\x03';
+//Add data to the model string - all data
+//modelString = modelString.Insert(20, T);
+//modelString = modelString.Insert(34, A);
+//modelString = modelString.Insert(43, t); 
+//modelString = modelString.Insert(12-1, id);
+//MessageBox.Show(modelString);
+
+// Create file and copy the information from the buffer
 
 
-     private string getLastData(string source, string name, DataType t)
+private string getLastData(string source, string name, DataType t)
         {
             int index, startIndex, endIndex, endIndexComma, endIndexSpace;
             string result = "";
